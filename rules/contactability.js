@@ -31,6 +31,7 @@ const CONFIG = {
   processDays: 180,
   otherRecruiterContactDays: 60, // contacté par un autre recruteur : intouchable pendant 60 j
   minDaysBeforeFollowUp: 7, // pas de relance moins de 7 j après mon dernier contact
+  followUpWindowDays: 30, // l'extension ne propose la relance que < 30 j après MON dernier contact
   newCampaignDays: 180 // au-delà de 6 mois après mon dernier contact : nouvelle campagne
 };
 
@@ -160,6 +161,15 @@ function classifyCandidate({ state, actions = [], now = Date.now() }, config = C
 
   if (last.typeOf === config.thirdContact) {
     return result("vivier", ["sequence_terminee"], {
+      lastContact,
+      eligibleFrom: addDays(last.time, config.newCampaignDays)
+    });
+  }
+
+  // Au-delà de 30 j, l'extension proposerait un nouveau 1er contact au lieu d'une relance :
+  // on ne propose rien jusqu'à la nouvelle campagne.
+  if (ageDays >= config.followUpWindowDays) {
+    return result("vivier", ["relance_expiree"], {
       lastContact,
       eligibleFrom: addDays(last.time, config.newCampaignDays)
     });

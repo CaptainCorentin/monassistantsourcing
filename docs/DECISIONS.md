@@ -8,14 +8,15 @@ Outil personnel de Corentin Barczyk (boondId 15675). Propose une liste de candid
 Navigateur ── mot de passe (cookie httpOnly) ──► Next.js sur Vercel (serveur uniquement)
                                                   ├─► Supabase : message_templates, candidate_flags (ids Boond seulement)
                                                   └─► Workflow N8N "SOURCING WEBAPP" (secret en en-tête)
-                                                        ├─► API Boond en lecture (recherche filtrée + actions)
-                                                        └─► Webhooks existants contact-existing-candidate / relaunch-candidate
+                                                        └─► API Boond en lecture seule (recherche filtrée + actions par candidat)
 ```
 
 - Aucun stockage de données candidat. Les candidats sont lus dans Boond à chaque recherche, filtrée et paginée (50 par page).
 - Supabase contient les templates et les statuts propres à l'interface (masqué, reporté), indexés par id Boond uniquement.
-- Le workflow de l'extension (`bZsfmIdulu88qB1Y`) **n'est pas modifié**. Les règles sont dupliquées dans `rules/contactability.js`, testé ici puis collé dans le nœud Code du nouveau workflow.
-- "Marquer contacté" re-vérifie le candidat en direct, puis appelle le webhook existant avec le `nextContactTypeOf` calculé.
+- Le workflow de l'extension (`bZsfmIdulu88qB1Y`) **n'est pas modifié ni appelé**. Les règles sont dupliquées dans `rules/contactability.js`, testé ici puis collé dans le nœud Code du nouveau workflow.
+- La webapp est en **lecture seule** : aucune écriture dans Boond. Le contact se fait depuis LinkedIn avec l'extension.
+- Une recherche = 1 exécution N8N (liste filtrée + vérification de chaque candidat par id, 100 maximum).
+- "À relancer" est aligné sur l'extension : relance proposée seulement si le dernier contact est le mien et date de moins de 30 j.
 
 ## Règles de classement
 
@@ -33,7 +34,8 @@ L = dernière action de contact (131 / 15 / 16), tous auteurs.
 | L par moi, > 6 mois | À contacter (nouvelle campagne) | 131 |
 | L par moi, type 16 | Vivier | aucune |
 | L par moi, 131 ou 15, < 7 j | Bloqué (contact récent) | aucune |
-| L par moi, 131 ou 15, ≥ 7 j | À relancer | 15 / 16 |
+| L par moi, 131 ou 15, 7 à 30 j | À relancer | 15 / 16 |
+| L par moi, 131 ou 15, 30 j à 6 mois | Vivier (relance expirée) | aucune |
 
 Hypothèses par défaut, à confirmer : l'état 0 correspond à "à traiter" ; un candidat jamais contacté en état 5 / 11 / 13 va aussi dans "À contacter" ; délai de 7 j avant relance ; 6 mois sans réponse à mon contact = nouvelle campagne.
 

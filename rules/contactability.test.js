@@ -28,11 +28,14 @@ const cases = [
 
   // --- À relancer ---
   { name: "mon 1er contact il y a 8 j", state: 0, actions: [action(131, 8)], category: "a_relancer", next: 15 },
-  { name: "mon 2e contact il y a 40 j", state: 11, actions: [action(131, 60), action(15, 40)], category: "a_relancer", next: 16 },
+  { name: "mon 2e contact il y a 20 j", state: 11, actions: [action(131, 60), action(15, 20)], category: "a_relancer", next: 16 },
+  { name: "mon 1er contact il y a 29 j : encore relançable", state: 0, actions: [action(131, 29)], category: "a_relancer", next: 15 },
   { name: "un autre a fait le 1er, moi le 2e : c'est moi le dernier", state: 0, actions: [action(131, 90, OTHER), action(15, 20)], category: "a_relancer", next: 16 },
 
   // --- Vivier ---
   { name: "mon 3e contact il y a 30 j", state: 0, actions: [action(131, 80), action(15, 50), action(16, 30)], category: "vivier", reasons: ["sequence_terminee"] },
+  { name: "mon 1er contact il y a 30 j : relance expirée", state: 0, actions: [action(131, 30)], category: "vivier", reasons: ["relance_expiree"] },
+  { name: "mon 2e contact il y a 120 j : relance expirée", state: 0, actions: [action(15, 120)], category: "vivier", reasons: ["relance_expiree"] },
   { name: "mon 3e contact il y a 2 j : vivier même récent", state: 0, actions: [action(16, 2)], category: "vivier" },
 
   // --- Bloqués par le contact ---
@@ -74,7 +77,7 @@ test("eligibleFrom : date de déblocage la plus lointaine", () => {
 });
 
 test("contactCount et lastContact renseignés", () => {
-  const r = classifyCandidate({ state: 0, actions: [action(131, 60, OTHER), action(15, 30)], now: NOW });
+  const r = classifyCandidate({ state: 0, actions: [action(131, 60, OTHER), action(15, 20)], now: NOW });
   assert.equal(r.contactCount, 2);
   assert.equal(r.lastContact.typeOf, 15);
   assert.equal(r.lastContact.byMe, true);
