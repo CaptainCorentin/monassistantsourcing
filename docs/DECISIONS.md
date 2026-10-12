@@ -47,3 +47,24 @@ Hypothèses par défaut, à confirmer : l'état 0 correspond à "à traiter" ; u
 ```
 node --test rules/*.test.js
 ```
+
+## API Boond : résultats des tests (12/10/2026, lecture seule)
+
+| Point | Résultat |
+|---|---|
+| Base candidats | 21 547 |
+| `perimeterManagers[]=15675` | 886 candidats (filtre actif) |
+| États : `states[]` | **ignoré** |
+| États : `candidateStates[]` | actif. Mon périmètre en 0/5/11/13 : **698**, dont 465 en "A traiter !" |
+| `keywords` | actif (Product Owner : 420 sur 698) |
+| `maxResults` sur `/candidates` | 500 accepté |
+| `maxResults` sur `/actions` | 100 accepté, 500 retombe à 30 |
+| `/actions` + `perimeterManagers` | filtre sur l'**auteur** de l'action, pas sur le propriétaire du candidat : inutilisable pour une lecture en masse |
+| Historique `/candidates/{id}/actions` | pas de troncature observée (6 candidats, 3 à 20 actions). On passe `maxResults=500` par sécurité. |
+| Format de date | `2027-10-25T12:00:00+0200`, lu correctement par `new Date()` |
+
+Conséquence : une page de 50 candidats = 1 appel liste + 50 appels historique.
+
+Dictionnaire Boond, états candidat : 0 A traiter !, 5 P+, 11 LN+ (vivier), 13 Vivier +++.
+
+Dictionnaire Boond, actions candidat utiles : 131 1er Contact, 15 2ème Contact, 16 3ème Contact et +, 18 Retour Négatif / Pas Intéressé, 1 Relance à faire / Rappel, 19 Fin de process à l'initiative du candidat, 133 Fin de process à NOTRE initiative, 12 Pré-qualification, 40 Entretien 1, 45 Entretien 2, 130 Entretien 3, 14 Entretien Entre Pairs, 134 Entretien en SUPPORT, 43 ED, 7 EM, 42 Signature, 132 Reco Talent A CONTACTER.

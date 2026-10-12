@@ -21,7 +21,9 @@ const CONFIG = {
   notInterested: 18,
   scheduledCallback: 1,
   endOfProcess: 19,
-  processTypes: [40, 130, 45, 134, 43], // pré-qualif, entretien 1, entretien 2, entre pairs, ED
+  // Repris tel quel de la prod. Libellés Boond réels (dictionnaire) : 40 Entretien 1, 130 Entretien 3,
+  // 45 Entretien 2, 134 Entretien en SUPPORT, 43 ED. Absents : 12 Pré-qualification, 14 Entre Pairs.
+  processTypes: [40, 130, 45, 134, 43],
 
   // Fenêtres en jours
   notInterestedDays: 90,
