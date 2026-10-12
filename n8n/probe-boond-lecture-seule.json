@@ -1,0 +1,191 @@
+{
+  "name": "TEST LECTURE BOOND - webapp sourcing (lecture seule)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "4386b7a6-122b-4624-a8fd-99dab4551479",
+      "name": "Lancer les tests",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\"json\": {\"probe\": \"cand_base\", \"url\": \"https://ui.boondmanager.com/api/candidates?maxResults=1\"}}, {\"json\": {\"probe\": \"cand_manager\", \"url\": \"https://ui.boondmanager.com/api/candidates?maxResults=1&perimeterManagers%5B%5D=15675\"}}, {\"json\": {\"probe\": \"cand_manager_main\", \"url\": \"https://ui.boondmanager.com/api/candidates?maxResults=1&perimeterManagers%5B%5D=15675&perimeterManagersType=main\"}}, {\"json\": {\"probe\": \"cand_states_states\", \"url\": \"https://ui.boondmanager.com/api/candidates?maxResults=1&states%5B%5D=0&states%5B%5D=5&states%5B%5D=11&states%5B%5D=13\"}}, {\"json\": {\"probe\": \"cand_states_candidateStates\", \"url\": \"https://ui.boondmanager.com/api/candidates?maxResults=1&candidateStates%5B%5D=0&candidateStates%5B%5D=5&candidateStates%5B%5D=11&candidateStates%5B%5D=13\"}}, {\"json\": {\"probe\": \"cand_manager_states\", \"url\": \"https://ui.boondmanager.com/api/candidates?maxResults=1&perimeterManagers%5B%5D=15675&states%5B%5D=0&states%5B%5D=5&states%5B%5D=11&states%5B%5D=13\"}}, {\"json\": {\"probe\": \"cand_page500\", \"url\": \"https://ui.boondmanager.com/api/candidates?maxResults=500&perimeterManagers%5B%5D=15675\"}}, {\"json\": {\"probe\": \"cand_keywords\", \"url\": \"https://ui.boondmanager.com/api/candidates?maxResults=1&perimeterManagers%5B%5D=15675&keywords=Product%20Owner\"}}, {\"json\": {\"probe\": \"actions_base\", \"url\": \"https://ui.boondmanager.com/api/actions?maxResults=1\"}}, {\"json\": {\"probe\": \"actions_category_candidate\", \"url\": \"https://ui.boondmanager.com/api/actions?maxResults=1&category=candidate\"}}, {\"json\": {\"probe\": \"actions_manager\", \"url\": \"https://ui.boondmanager.com/api/actions?maxResults=1&perimeterManagers%5B%5D=15675\"}}, {\"json\": {\"probe\": \"actions_typesOf\", \"url\": \"https://ui.boondmanager.com/api/actions?maxResults=1&typesOf%5B%5D=131\"}}, {\"json\": {\"probe\": \"actions_actionTypes\", \"url\": \"https://ui.boondmanager.com/api/actions?maxResults=1&actionTypes%5B%5D=131\"}}, {\"json\": {\"probe\": \"actions_page500\", \"url\": \"https://ui.boondmanager.com/api/actions?maxResults=500&category=candidate\"}}, {\"json\": {\"probe\": \"dictionary\", \"url\": \"https://ui.boondmanager.com/api/application/dictionary\"}}];"
+      },
+      "id": "e6f14f3c-fe94-4db3-9f3c-dcab1bd00411",
+      "name": "Liste des tests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 400
+            }
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "ffab38ec-aab9-433a-afa4-9e1b837b7c31",
+      "name": "Appels Boond",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "79iDzvM4hlzHzZqS",
+          "name": "BOOND AUTH CORENTIN"
+        }
+      },
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Récupère l'id d'un candidat de ton périmètre pour tester l'historique d'actions.\nconst probes = $('Liste des tests').all().map(i => i.json.probe);\nconst res = $('Appels Boond').all();\nconst idx = probes.indexOf('cand_manager');\nconst body = res[idx] && res[idx].json.body;\nconst id = body && Array.isArray(body.data) && body.data[0] ? body.data[0].id : null;\nif (!id) return [{ json: { probe: 'cand_actions_skipped', url: null } }];\nconst B = 'https://ui.boondmanager.com/api';\nreturn [\n  { json: { probe: 'cand_actions_default', url: `${B}/candidates/${id}/actions` } },\n  { json: { probe: 'cand_actions_500', url: `${B}/candidates/${id}/actions?maxResults=500` } }\n];\n"
+      },
+      "id": "e95a5ce6-28d9-46b0-97d0-313111237d39",
+      "name": "Tests historique candidat",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 400
+            }
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "11d65b9f-9890-4b06-b221-46fff3490934",
+      "name": "Appels historique",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "79iDzvM4hlzHzZqS",
+          "name": "BOOND AUTH CORENTIN"
+        }
+      },
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Résumé SANS données personnelles : compteurs, noms de champs, codes. Aucune valeur de fiche.\nconst ACTION_CODES = [131, 15, 16, 18, 1, 19, 40, 130, 45, 134, 43];\n\nfunction summarize(probe, url, r) {\n  if (!url) return { probe, note: 'non exécuté' };\n  const body = typeof r.body === 'string' ? (() => { try { return JSON.parse(r.body); } catch { return r.body; } })() : r.body;\n  const out = { probe, url: url.replace('https://ui.boondmanager.com/api', ''), status: r.statusCode };\n  if (!body || typeof body !== 'object') { out.raw = String(body).slice(0, 200); return out; }\n  if (body.errors) out.errors = body.errors.map(e => e.detail || e.title || e.code);\n  out.totalsRows = body.meta?.totals?.rows ?? null;\n  const data = body.data;\n  out.returned = Array.isArray(data) ? data.length : (data ? 1 : 0);\n  const first = Array.isArray(data) ? data[0] : null;\n  if (first) {\n    out.type = first.type;\n    out.attributeKeys = Object.keys(first.attributes || {});\n    out.relationshipKeys = Object.keys(first.relationships || {});\n    if (probe.startsWith('actions') || probe.startsWith('cand_actions')) {\n      out.typeOfSample = [...new Set(data.map(a => a.attributes?.typeOf))].slice(0, 30);\n      out.dependsOnType = first.relationships?.dependsOn?.data?.type ?? null;\n      out.dates = data.slice(0, 3).map(a => a.attributes?.startDate);\n    }\n  }\n  if (probe === 'dictionary') {\n    const lists = [];\n    (function walk(node, path) {\n      if (lists.length > 80 || !node || typeof node !== 'object') return;\n      if (Array.isArray(node)) {\n        if (node.length && node.every(x => x && typeof x === 'object' && 'id' in x && ('value' in x || 'label' in x))) {\n          const ids = node.map(x => Number(x.id));\n          const relevant = /state|action/i.test(path) || ACTION_CODES.filter(c => ids.includes(c)).length >= 5;\n          lists.push({ path, length: node.length, values: relevant ? node.slice(0, 80).map(x => `${x.id}=${x.value ?? x.label}`) : undefined });\n        } else node.slice(0, 50).forEach((x, i) => walk(x, `${path}[${i}]`));\n        return;\n      }\n      for (const k of Object.keys(node)) walk(node[k], path ? `${path}.${k}` : k);\n    })(body, '');\n    out.lists = lists.filter(l => l.values);\n    out.otherListPaths = lists.filter(l => !l.values).map(l => l.path).slice(0, 40);\n  }\n  return out;\n}\n\nconst rows = [];\nconst p1 = $('Liste des tests').all(), r1 = $('Appels Boond').all();\np1.forEach((p, i) => rows.push(summarize(p.json.probe, p.json.url, r1[i]?.json || {})));\nconst p2 = $('Tests historique candidat').all(), r2 = $('Appels historique').all();\np2.forEach((p, i) => rows.push(summarize(p.json.probe, p.json.url, r2[i]?.json || {})));\n\nconst base = rows.find(r => r.probe === 'cand_base')?.totalsRows;\nconst actBase = rows.find(r => r.probe === 'actions_base')?.totalsRows;\nfor (const r of rows) {\n  if (r.probe.startsWith('cand_') && r.probe !== 'cand_base' && !r.probe.startsWith('cand_actions')) r.filtreActif = r.totalsRows !== base;\n  if (r.probe.startsWith('actions_') && r.probe !== 'actions_base') r.filtreActif = r.totalsRows !== actBase;\n}\nreturn [{ json: { aCopierPourClaude: JSON.stringify(rows, null, 1) } }];\n"
+      },
+      "id": "69c75484-6ac4-4761-b6c8-48002d0be38e",
+      "name": "Résumé sans données perso",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Lancer les tests": {
+      "main": [
+        [
+          {
+            "node": "Liste des tests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Liste des tests": {
+      "main": [
+        [
+          {
+            "node": "Appels Boond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Appels Boond": {
+      "main": [
+        [
+          {
+            "node": "Tests historique candidat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tests historique candidat": {
+      "main": [
+        [
+          {
+            "node": "Appels historique",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Appels historique": {
+      "main": [
+        [
+          {
+            "node": "Résumé sans données perso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
