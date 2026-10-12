@@ -5,9 +5,9 @@ Outil personnel de Corentin Barczyk (boondId 15675). Propose une liste de candid
 ## Architecture
 
 ```
-Navigateur ── mot de passe (cookie httpOnly) ──► Next.js sur Vercel (serveur uniquement)
+Navigateur ── mot de passe (cookie httpOnly signé) ──► Next.js sur Vercel (routes serveur uniquement)
                                                   ├─► Supabase : message_templates, candidate_flags (ids Boond seulement)
-                                                  └─► Workflow N8N "SOURCING WEBAPP" (secret en en-tête)
+                                                  └─► Workflow N8N "SOURCING VIVIER" (secret en en-tête, 1 exécution par recherche)
                                                         └─► API Boond en lecture seule (recherche filtrée + actions par candidat)
 ```
 
@@ -22,7 +22,7 @@ Navigateur ── mot de passe (cookie httpOnly) ──► Next.js sur Vercel (s
 
 Filtres préalables : état Boond ∈ {0, 5, 11, 13}, `mainManager = 15675`.
 
-Règles bloquantes (tous auteurs, reprises de la prod) : pas intéressé (18) < 90 j, rappel (1) dans le futur, fin de process (19) < 365 j, pré-qualif / entretiens (40, 130, 45, 134, 43) < 180 j.
+Règles bloquantes (tous auteurs) : pas intéressé (18) < 90 j, rappel (1) dans le futur, fin de process (19, + 133 ajouté) < 365 j, process (40, 45, 130, 134, 43, + 12, 14, 7, 42 ajoutés) < 180 j. Les ajouts corrigent des codes absents de la prod (libellés vérifiés dans le dictionnaire Boond).
 
 L = dernière action de contact (131 / 15 / 16), tous auteurs.
 
@@ -38,6 +38,15 @@ L = dernière action de contact (131 / 15 / 16), tous auteurs.
 | L par moi, 131 ou 15, 30 j à 6 mois | Vivier (relance expirée) | aucune |
 
 Hypothèses par défaut, à confirmer : l'état 0 correspond à "à traiter" ; un candidat jamais contacté en état 5 / 11 / 13 va aussi dans "À contacter" ; délai de 7 j avant relance ; 6 mois sans réponse à mon contact = nouvelle campagne.
+
+## Sécurité
+
+- Tout est fermé par défaut (`middleware.ts`) : sans session valide, les pages redirigent vers `/login` et les routes API répondent 401. Sans `APP_PASSWORD` ou `SESSION_SECRET` configurés, personne ne peut se connecter.
+- Session : cookie `httpOnly`, `Secure`, `SameSite=strict`, 7 jours, signé HMAC-SHA256. Mot de passe comparé en temps constant, 800 ms de délai après un échec.
+- En-têtes : CSP `default-src 'self'` (la page ne parle qu'à son serveur), `frame-ancestors 'none'`, `X-Robots-Tag: noindex`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`.
+- Paramètres de recherche validés côté serveur avant tout appel (`lib/search-params.ts`).
+- Données Boond affichées en texte (React échappe tout), liens LinkedIn limités à `https://*.linkedin.com`, lien Boond construit à partir d'un id numérique.
+- Aucun credential Boond, N8N ou Supabase côté navigateur.
 
 ## Hors périmètre
 

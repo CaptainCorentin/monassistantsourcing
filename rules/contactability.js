@@ -20,10 +20,11 @@ const CONFIG = {
   thirdContact: 16,
   notInterested: 18,
   scheduledCallback: 1,
-  endOfProcess: 19,
-  // Repris tel quel de la prod. Libellés Boond réels (dictionnaire) : 40 Entretien 1, 130 Entretien 3,
-  // 45 Entretien 2, 134 Entretien en SUPPORT, 43 ED. Absents : 12 Pré-qualification, 14 Entre Pairs.
-  processTypes: [40, 130, 45, 134, 43],
+  // Fin de process : 19 à l'initiative du candidat (prod), 133 à notre initiative (ajout webapp).
+  endOfProcessTypes: [19, 133],
+  // Process en cours. Prod : 40 Entretien 1, 45 Entretien 2, 130 Entretien 3, 134 Entretien en SUPPORT,
+  // 43 ED. Ajouts webapp (absents de la prod) : 12 Pré-qualification, 14 Entre Pairs, 7 EM, 42 Signature.
+  processTypes: [40, 45, 130, 134, 43, 12, 14, 7, 42],
 
   // Fenêtres en jours
   notInterestedDays: 90,
@@ -108,7 +109,7 @@ function classifyCandidate({ state, actions = [], now = Date.now() }, config = C
     if (a.typeOf === config.scheduledCallback && a.time > now) {
       block("rappel_programme", a.time);
     }
-    if (a.typeOf === config.endOfProcess && a.time > now - config.endOfProcessDays * DAY_MS) {
+    if (config.endOfProcessTypes.includes(a.typeOf) && a.time > now - config.endOfProcessDays * DAY_MS) {
       block("fin_process_365j", a.time + config.endOfProcessDays * DAY_MS);
     }
     if (config.processTypes.includes(a.typeOf) && a.time > now - config.processDays * DAY_MS) {
