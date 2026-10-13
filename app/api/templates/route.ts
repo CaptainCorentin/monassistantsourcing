@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
-import { rest } from "@/lib/supabase";
+import { rpc } from "@/lib/supabase";
+import { currentToken } from "@/lib/auth";
 import { parseTemplateInput, toTemplate, type TemplateRow } from "@/lib/templates";
 
 export const runtime = "nodejs";
 
 export async function GET() {
+  const token = await currentToken();
+  if (!token) return NextResponse.json({ error: "Session expirée. Reconnecte-toi." }, { status: 401 });
   try {
-    const rows = await rest<TemplateRow[]>("GET", "message_templates?select=id,name,category,channel,body,sort_order&order=sort_order.asc,name.asc");
+    const rows = await rpc<TemplateRow[]>("app_list_templates", { p_token: token });
     return NextResponse.json(rows.map(toTemplate));
   } catch {
     return NextResponse.json({ error: "Impossible de charger les messages types." }, { status: 502 });
@@ -14,11 +17,14 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const token = await currentToken();
+  if (!token) return NextResponse.json({ error: "Session expirée. Reconnecte-toi." }, { status: 401 });
   const input = parseTemplateInput(await req.json().catch(() => null));
   if (!input) return NextResponse.json({ error: "Message type invalide." }, { status: 400 });
   try {
-    const last = await rest<{ sort_order: number }[]>("GET", "message_templates?select=sort_order&order=sort_order.desc&limit=1");
-    const [row] = await rest<TemplateRow[]>("POST", "message_templates", { ...input, sort_order: (last[0]?.sort_order ?? 0) + 1 }, "return=representation");
+    const row = await rpc<TemplateRow>("app_save_template", {
+      p_token: token, p_id: null, p_name: input.name, p_category: input.category, p_channel: input.channel, p_body: input.body
+    });
     return NextResponse.json(toTemplate(row), { status: 201 });
   } catch {
     return NextResponse.json({ error: "Enregistrement impossible." }, { status: 502 });

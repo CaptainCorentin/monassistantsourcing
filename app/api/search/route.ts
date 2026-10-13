@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { parseSearchParams } from "@/lib/search-params";
 import { exampleResult } from "@/lib/example";
 import { N8N_URL, webhookKey } from "@/lib/n8n";
+import { currentToken } from "@/lib/auth";
 import type { Candidate, SearchResult } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -58,12 +59,14 @@ export async function POST(req: Request) {
   const params = parseSearchParams(body);
   if (!params) return NextResponse.json({ error: "Paramètres de recherche invalides." }, { status: 400 });
 
+  const token = await currentToken();
+  if (!token) return NextResponse.json({ error: "Session expirée. Reconnecte-toi." }, { status: 401 });
   const url = N8N_URL;
-  const key = await webhookKey();
+  const key = await webhookKey(token);
   if (!key) {
     return NextResponse.json({
       ...exampleResult(params.maxChecks),
-      notice: "Clé N8N introuvable (ni N8N_WEBHOOK_KEY, ni Supabase configuré sur ce déploiement) : données d'exemple affichées."
+      notice: "Clé N8N introuvable : données d'exemple affichées."
     });
   }
 

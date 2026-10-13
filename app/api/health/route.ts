@@ -1,40 +1,28 @@
 import { NextResponse } from "next/server";
-import { rest } from "@/lib/supabase";
-import { safeEqual } from "@/lib/session";
-import { N8N_URL, webhookKey } from "@/lib/n8n";
+import { rpc } from "@/lib/supabase";
+import { N8N_URL } from "@/lib/n8n";
 
 export const runtime = "nodejs";
 
-// Contrôle de santé du déploiement, sans aucune donnée candidat.
-// Sans clé : seulement la présence des variables (jamais leur valeur), pour diagnostiquer un déploiement.
-// Avec la clé N8N (en-tête X-Health-Key) : appels réels à Supabase et au mode ping de N8N.
+// Contrôle de santé du déploiement, sans aucune donnée candidat ni secret.
+// Toujours : Supabase joignable avec la clé publique.
+// Avec l'en-tête X-Health-Key (clé N8N) : ping réel du workflow N8N, qui valide lui-même la clé.
 export async function GET(req: Request) {
-  const session = !!process.env.APP_PASSWORD && process.env.APP_PASSWORD.length >= 12
-    && !!process.env.SESSION_SECRET && process.env.SESSION_SECRET.length >= 32;
-  const config = {
-    session,
-    supabase: !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    n8nKeyInVercel: !!process.env.N8N_WEBHOOK_KEY
-  };
-
-  const key = await webhookKey();
-  const given = req.headers.get("x-health-key") || "";
-  if (!key || !safeEqual(given, key)) return NextResponse.json({ config, keyFound: !!key });
-
   let supabase = "ok";
-  let templates = 0;
   try {
-    const rows = await rest<{ id: string }[]>("GET", "message_templates?select=id");
-    templates = rows.length;
+    await rpc<boolean>("app_session_ok", { p_token: "0".repeat(64) });
   } catch {
     supabase = "erreur";
   }
+
+  const given = req.headers.get("x-health-key");
+  if (!given || !/^[0-9a-f]{64}$/.test(given)) return NextResponse.json({ supabase });
 
   let n8n = "ok";
   try {
     const res = await fetch(N8N_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-Vivier-Key": key },
+      headers: { "Content-Type": "application/json", "X-Vivier-Key": given },
       body: JSON.stringify({ ping: true }),
       cache: "no-store",
       signal: AbortSignal.timeout(20_000)
@@ -44,6 +32,5 @@ export async function GET(req: Request) {
   } catch {
     n8n = "injoignable";
   }
-
-  return NextResponse.json({ config, supabase, templates, n8n, keySource: process.env.N8N_WEBHOOK_KEY ? "vercel" : "supabase" });
+  return NextResponse.json({ supabase, n8n });
 }

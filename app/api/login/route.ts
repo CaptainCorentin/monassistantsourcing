@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { SESSION_COOKIE, SESSION_TTL_MS, createSessionValue, isValidPassword } from "@/lib/session";
+import { SESSION_COOKIE, SESSION_TTL_MS } from "@/lib/session";
+import { rpc, RpcError } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 
@@ -12,17 +13,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
-  if (!(await isValidPassword(password))) {
-    // Ralentit les essais en série.
+  let token: string | null = null;
+  try {
+    token = await rpc<string | null>("app_login", { p_password: password });
+  } catch (e) {
+    if (e instanceof RpcError && e.message.includes("trop_de_tentatives")) {
+      return NextResponse.json({ error: "Trop de tentatives. Réessaie dans 15 minutes." }, { status: 429 });
+    }
+    return NextResponse.json({ error: "Service de connexion injoignable." }, { status: 502 });
+  }
+  if (!token) {
     await new Promise(r => setTimeout(r, 800));
     return NextResponse.json({ error: "Mot de passe incorrect." }, { status: 401 });
   }
 
-  const value = await createSessionValue();
-  if (!value) return NextResponse.json({ error: "Configuration serveur incomplète." }, { status: 500 });
-
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(SESSION_COOKIE, value, {
+  res.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",

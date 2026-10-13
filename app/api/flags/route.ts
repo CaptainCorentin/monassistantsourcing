@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
-import { rest } from "@/lib/supabase";
+import { rpc } from "@/lib/supabase";
+import { currentToken } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 type FlagRow = { boond_id: number; kind: "masque" | "reporte"; until: string | null };
 
-// Statuts actifs : masqués, et reportés dont la date n'est pas passée.
 export async function GET() {
+  const token = await currentToken();
+  if (!token) return NextResponse.json({ error: "Session expirée. Reconnecte-toi." }, { status: 401 });
   try {
-    // Valeur entre guillemets : l'horodatage contient des « . » et « : » réservés par PostgREST.
-    const or = encodeURIComponent(`(kind.eq.masque,until.gt."${new Date().toISOString()}")`);
-    const rows = await rest<FlagRow[]>("GET", `candidate_flags?select=boond_id,kind,until&or=${or}`);
+    const rows = await rpc<FlagRow[]>("app_list_flags", { p_token: token });
     return NextResponse.json(rows.map(r => ({ boondId: String(r.boond_id), kind: r.kind, until: r.until })));
   } catch {
     return NextResponse.json({ error: "Impossible de charger les candidats masqués." }, { status: 502 });
@@ -18,6 +18,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const token = await currentToken();
+  if (!token) return NextResponse.json({ error: "Session expirée. Reconnecte-toi." }, { status: 401 });
   const body = await req.json().catch(() => null) as Record<string, unknown> | null;
   const boondId = String(body?.boondId ?? "");
   const kind = body?.kind === "masque" ? "masque" : body?.kind === "reporte" ? "reporte" : null;
@@ -25,10 +27,9 @@ export async function POST(req: Request) {
   if (!/^\d{1,12}$/.test(boondId) || !kind || (kind === "reporte" && ![7, 30].includes(days))) {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
-  const until = kind === "reporte" ? new Date(Date.now() + days * 86400000).toISOString() : null;
   try {
-    await rest("POST", "candidate_flags?on_conflict=boond_id", { boond_id: Number(boondId), kind, until }, "resolution=merge-duplicates");
-    return NextResponse.json({ boondId, kind, until });
+    const row = await rpc<FlagRow>("app_set_flag", { p_token: token, p_boond_id: Number(boondId), p_kind: kind, p_days: kind === "reporte" ? days : null });
+    return NextResponse.json({ boondId, kind: row.kind, until: row.until });
   } catch {
     return NextResponse.json({ error: "Enregistrement impossible." }, { status: 502 });
   }

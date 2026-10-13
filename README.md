@@ -3,17 +3,13 @@
 Webapp personnelle de sourcing de Corentin Barczyk (WeFiiT). Elle lit le vivier Boond (LN+, Vivier +++ par défaut), vérifie l'historique de chaque fiche et propose les candidats contactables, avec des messages types à copier sur LinkedIn. Elle n'écrit jamais dans Boond : le contact se fait depuis LinkedIn avec l'extension « Sourcing LinkedIn — WeFiiT ».
 
 ```
-Navigateur ─► Next.js sur Vercel ─┬─► Supabase (messages types, candidats masqués / reportés)
+Navigateur ─► Next.js sur Vercel ─┬─► Supabase (mot de passe, sessions, messages types, masqués / reportés)
                                   └─► N8N « VIVIER BOOND - Webapp sourcing » ─► API Boond (lecture)
 ```
 
 ## Mise en route
 
-1. Vercel, projet `monassistantsourcing`, Settings, Environment Variables : renseigner `APP_PASSWORD`, `SESSION_SECRET`, `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY` (les variables N8N sont facultatives) (détail dans `docs/DECISIONS.md`).
-2. Redéployer.
-3. Ouvrir `/login`, saisir `APP_PASSWORD`, lancer une recherche.
-
-Sans clé N8N disponible (ni variable, ni Supabase), la recherche affiche des données d'exemple et un bandeau l'indique.
+Aucune variable Vercel n'est nécessaire. Ouvrir https://monassistantsourcing.vercel.app/login, saisir le mot de passe (transmis à part, empreinte bcrypt dans Supabase), lancer une recherche.
 
 ## Développement
 

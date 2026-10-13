@@ -41,28 +41,18 @@ Hypothèses par défaut, à confirmer : l'état 0 correspond à "à traiter" ; u
 
 ## Sécurité
 
-- Tout est fermé par défaut (`middleware.ts`) : sans session valide, les pages redirigent vers `/login` et les routes API répondent 401. Sans `APP_PASSWORD` ou `SESSION_SECRET` configurés, personne ne peut se connecter.
-- Session : cookie `httpOnly`, `Secure`, `SameSite=strict`, 7 jours, signé HMAC-SHA256. Mot de passe comparé en temps constant, 800 ms de délai après un échec.
-- En-têtes : CSP `default-src 'self'` (la page ne parle qu'à son serveur), `frame-ancestors 'none'`, `X-Robots-Tag: noindex`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`.
-- Paramètres de recherche validés côté serveur avant tout appel (`lib/search-params.ts`).
-- Données Boond affichées en texte (React échappe tout), liens LinkedIn limités à `https://*.linkedin.com`, lien Boond construit à partir d'un id numérique.
-- Aucun credential Boond, N8N ou Supabase côté navigateur.
-- Réponse N8N filtrée champ par champ côté serveur (`app/api/search/route.ts`) avant d'atteindre le navigateur.
-- Écritures API : refusées si l'en-tête `Origin` n'est pas celui de la webapp ou si le corps n'est pas du JSON (en plus du cookie `SameSite=strict`).
-- Supabase (`lbrdtyxlkfeiaveuinux`, région Paris) : RLS activé sans policy, droits retirés à `anon` et `authenticated`. Seul le serveur y accède avec la clé `service_role`. Schéma : `supabase/migrations/0001_init.sql`.
+- **Aucun secret côté Vercel.** Le serveur n'utilise que la clé publique Supabase (`sb_publishable_…`), conçue pour être exposée. Les tables sont fermées (RLS sans policy, droits retirés à `anon` / `authenticated`) ; le seul accès passe par des fonctions `app_*` (`SECURITY DEFINER`, `search_path` vide) qui exigent un jeton de session valide (`supabase/migrations/0003_auth_rpc.sql`).
+- **Mot de passe** : empreinte bcrypt dans `app_config` (`password_hash`). 10 échecs en 15 minutes bloquent toute connexion jusqu'à la fin de la fenêtre. Pour le changer : `update app_config set value = extensions.crypt('<nouveau>', extensions.gen_salt('bf', 10)) where key = 'password_hash'`.
+- **Session** : jeton aléatoire de 256 bits en cookie `httpOnly`, `Secure`, `SameSite=strict`, 7 jours. Seule son empreinte SHA-256 est stockée (`app_sessions`). Déconnexion = expiration immédiate.
+- **Middleware** (`middleware.ts`) : tout est fermé par défaut ; chaque page et chaque API vérifie la session en base. Écritures refusées hors JSON ou depuis une autre origine.
+- **En-têtes** : CSP `default-src 'self'`, `frame-ancestors 'none'`, `X-Robots-Tag: noindex`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`, HSTS (Vercel).
+- **Clé N8N** : stockée dans `app_config`, délivrée par `app_n8n_key` à une session valide uniquement ; N8N ne stocke que son empreinte SHA-256.
+- **Entrées** validées côté serveur (`lib/search-params.ts`, `lib/templates.ts`), réponse N8N filtrée champ par champ (`app/api/search/route.ts`), données Boond affichées en texte, liens LinkedIn limités à `https://*.linkedin.com`.
+- **`/api/health`** (public) : indique seulement si Supabase répond ; avec l'en-tête `X-Health-Key`, pingue N8N qui valide lui-même la clé. Aucune donnée.
 
 ## Variables d'environnement (Vercel)
 
-| Variable | Rôle |
-|---|---|
-| `APP_PASSWORD` | Mot de passe de connexion, 12 caractères minimum |
-| `SESSION_SECRET` | Secret de signature des sessions, 32 caractères minimum |
-| `SUPABASE_URL` | `https://lbrdtyxlkfeiaveuinux.supabase.co` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Clé `service_role` (Supabase, Project Settings, API). Jamais préfixée `NEXT_PUBLIC_`. |
-| `N8N_WEBHOOK_URL` | Facultatif. Par défaut `https://wefiit.app.n8n.cloud/webhook/vivier-boond-search`. |
-| `N8N_WEBHOOK_KEY` | Facultatif. Par défaut, la clé est lue dans la table Supabase `app_config` (ligne `n8n_webhook_key`). N8N ne stocke que son empreinte SHA-256. |
-
-Sans clé (ni variable, ni Supabase configuré), la recherche renvoie des données d'exemple avec un bandeau d'avertissement.
+Aucune n'est requise. Surcharges possibles : `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `N8N_WEBHOOK_URL`, `N8N_WEBHOOK_KEY` (voir `.env.example`).
 
 ## Hors périmètre
 
