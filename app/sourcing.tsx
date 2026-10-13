@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Candidate, Category, SearchResult, Template } from "@/lib/types";
 import { exampleResult, exampleTemplates } from "@/lib/example";
 
@@ -59,13 +59,39 @@ function fillTemplate(body: string, c: Candidate) {
 
 type Flag = { kind: "masque" | "reporte"; until?: number };
 
+// Appel aux routes de la webapp. Une session expirée renvoie vers la connexion.
+async function api<T>(path: string, method = "GET", body?: unknown): Promise<T> {
+  const res = await fetch(path, {
+    method,
+    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  if (res.status === 401) {
+    window.location.href = "/login";
+    throw new Error("Session expirée");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Erreur serveur");
+  return data as T;
+}
+
 export default function Sourcing() {
   const [result, setResult] = useState<SearchResult>(() => exampleResult(100));
   const [tab, setTab] = useState<Category>("a_contacter");
-  const [templates, setTemplates] = useState<Template[]>(exampleTemplates);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templatesError, setTemplatesError] = useState("");
   const [flags, setFlags] = useState<Map<string, Flag>>(new Map());
   const [pending, setPending] = useState(false);
   const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    api<Template[]>("/api/templates")
+      .then(setTemplates)
+      .catch((e: Error) => { setTemplates(exampleTemplates); setTemplatesError(`${e.message} Messages d'exemple affichés, non sauvegardés.`); });
+    api<{ boondId: string; kind: Flag["kind"]; until: string | null }[]>("/api/flags")
+      .then(rows => setFlags(new Map(rows.map(r => [r.boondId, { kind: r.kind, until: r.until ? Date.parse(r.until) : undefined }]))))
+      .catch(() => notify("Impossible de charger les candidats masqués."));
+  }, []);
 
   const [keywords, setKeywords] = useState("");
   const [sortOrder, setSortOrder] = useState("updateDate:asc");
@@ -107,13 +133,20 @@ export default function Sourcing() {
     }
   }
 
-  function setFlag(id: string, kind: Flag["kind"], days?: number) {
+  async function setFlag(id: string, kind: Flag["kind"], days?: number) {
+    const before = flags;
     setFlags(prev => new Map(prev).set(id, { kind, until: days ? Date.now() + days * DAY : undefined }));
-    notify(kind === "masque" ? "Candidat masqué" : `Reporté de ${days} jours`);
+    try {
+      await api("/api/flags", "POST", { boondId: id, kind, days });
+      notify(kind === "masque" ? "Candidat masqué" : `Reporté de ${days} jours`);
+    } catch (e) {
+      setFlags(before);
+      notify((e as Error).message);
+    }
   }
 
   async function logout() {
-    await fetch("/api/logout", { method: "POST" }).catch(() => {});
+    await api("/api/logout", "POST", {}).catch(() => {});
     window.location.href = "/login";
   }
 
@@ -210,7 +243,7 @@ export default function Sourcing() {
         </div>
       </section>
 
-      <Templates templates={templates} setTemplates={setTemplates} notify={notify} />
+      <Templates templates={templates} setTemplates={setTemplates} notify={notify} error={templatesError} />
 
       {toast && <div className="toast" role="status">{toast}</div>}
     </div>
@@ -314,15 +347,17 @@ function CandidateCard({ c, templates, onFlag, onCopied }: {
   );
 }
 
-function Templates({ templates, setTemplates, notify }: {
+function Templates({ templates, setTemplates, notify, error }: {
   templates: Template[];
   setTemplates: React.Dispatch<React.SetStateAction<Template[]>>;
   notify: (msg: string) => void;
+  error: string;
 }) {
   const [editing, setEditing] = useState<Template | null>(null);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Omit<Template, "id">>({ name: "", category: "a_contacter", channel: "invitation", body: "" });
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   function edit(t: Template | null) {
     setEditing(t);
@@ -331,21 +366,39 @@ function Templates({ templates, setTemplates, notify }: {
     setOpen(true);
   }
 
-  function save(e: React.FormEvent) {
+  async function save(e: React.FormEvent) {
     e.preventDefault();
     const clean = { ...draft, name: draft.name.trim().slice(0, 80), body: draft.body.slice(0, 8000) };
     if (!clean.name || !clean.body.trim()) return;
-    setTemplates(prev => editing ? prev.map(t => t.id === editing.id ? { ...t, ...clean } : t) : [...prev, { id: `local-${Date.now()}`, ...clean }]);
-    setOpen(false);
-    notify("Message enregistré pour cette session");
+    setSaving(true);
+    try {
+      const saved = editing
+        ? await api<Template>(`/api/templates/${editing.id}`, "PUT", clean)
+        : await api<Template>("/api/templates", "POST", clean);
+      setTemplates(prev => editing ? prev.map(t => t.id === saved.id ? saved : t) : [...prev, saved]);
+      setOpen(false);
+      notify("Message enregistré");
+    } catch (err) {
+      notify((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function remove() {
+  async function remove() {
     if (!editing) return;
     if (!confirmDelete) { setConfirmDelete(true); return; }
-    setTemplates(prev => prev.filter(t => t.id !== editing.id));
-    setOpen(false);
-    notify("Message supprimé");
+    setSaving(true);
+    try {
+      await api(`/api/templates/${editing.id}`, "DELETE");
+      setTemplates(prev => prev.filter(t => t.id !== editing.id));
+      setOpen(false);
+      notify("Message supprimé");
+    } catch (err) {
+      notify((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   const catLabel = (k: string) => CATEGORIES.find(c => c.key === k)?.label ?? "Toutes catégories";
@@ -361,7 +414,7 @@ function Templates({ templates, setTemplates, notify }: {
       <p className="hint" style={{ margin: "6px 0 0" }}>
         Variables : <code>{"{{prenom}}"}</code> <code>{"{{nom}}"}</code> <code>{"{{titre}}"}</code> <code>{"{{ville}}"}</code>. Une note d&apos;invitation LinkedIn est limitée à 300 caractères.
       </p>
-      <p className="warn" style={{ marginTop: 10 }}>Version de démonstration : les messages ne sont pas encore sauvegardés. Ils le seront dans Supabase à l&apos;étape suivante.</p>
+      {error && <p className="warn" style={{ marginTop: 10 }}>{error}</p>}
       <div className="tpl-list">
         {templates.length ? templates.map(t => (
           <div className="tpl" key={t.id}>
@@ -406,7 +459,7 @@ function Templates({ templates, setTemplates, notify }: {
             <div className="row">
               {editing && <button className="btn small" type="button" onClick={remove}>{confirmDelete ? "Confirmer la suppression" : "Supprimer"}</button>}
               <button className="btn small" type="button" onClick={() => setOpen(false)}>Annuler</button>
-              <button className="btn small primary" type="submit">Enregistrer</button>
+              <button className="btn small primary" type="submit" disabled={saving}>{saving ? "Enregistrement…" : "Enregistrer"}</button>
             </div>
           </div>
         </form>

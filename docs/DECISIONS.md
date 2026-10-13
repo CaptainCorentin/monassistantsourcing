@@ -47,6 +47,17 @@ Hypothèses par défaut, à confirmer : l'état 0 correspond à "à traiter" ; u
 - Paramètres de recherche validés côté serveur avant tout appel (`lib/search-params.ts`).
 - Données Boond affichées en texte (React échappe tout), liens LinkedIn limités à `https://*.linkedin.com`, lien Boond construit à partir d'un id numérique.
 - Aucun credential Boond, N8N ou Supabase côté navigateur.
+- Écritures API : refusées si l'en-tête `Origin` n'est pas celui de la webapp ou si le corps n'est pas du JSON (en plus du cookie `SameSite=strict`).
+- Supabase (`lbrdtyxlkfeiaveuinux`, région Paris) : RLS activé sans policy, droits retirés à `anon` et `authenticated`. Seul le serveur y accède avec la clé `service_role`. Schéma : `supabase/migrations/0001_init.sql`.
+
+## Variables d'environnement (Vercel)
+
+| Variable | Rôle |
+|---|---|
+| `APP_PASSWORD` | Mot de passe de connexion, 12 caractères minimum |
+| `SESSION_SECRET` | Secret de signature des sessions, 32 caractères minimum |
+| `SUPABASE_URL` | `https://lbrdtyxlkfeiaveuinux.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clé `service_role` (Supabase, Project Settings, API). Jamais préfixée `NEXT_PUBLIC_`. |
 
 ## Hors périmètre
 
