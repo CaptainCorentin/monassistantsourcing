@@ -16,6 +16,7 @@ export type Candidate = {
   lastContact: LastContact | null;
   eligibleFrom: string | null;
   updateDate?: string | null;
+  pastProcessDate?: string | null;
 };
 
 export type SearchParams = {

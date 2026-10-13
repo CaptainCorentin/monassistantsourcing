@@ -1,6 +1,6 @@
 # Banque de messages matricielle
 
-Version finalisée le 13/10, à valider avant intégration dans Supabase et dans l'outil.
+Validée le 13/10 et intégrée : textes dans Supabase (`message_blocks`, migration `0004`), modifiables depuis l'interface (section « Banque de messages »). Logique dans `lib/messages.ts`, testée par `rules/messages.test.mjs`. Les textes ci-dessous sont ceux de départ ; la version à jour est dans l'outil.
 
 ## Assemblage d'un 1er message
 
@@ -10,11 +10,11 @@ Version finalisée le 13/10, à valider avant intégration dans Supabase et dans
 
 | Axe | Règle | Correction |
 |---|---|---|
-| Historique | Motif de classement : `jamais_contacte` → A1, `contacte_par_autre_ancien` → A2, `nouvelle_campagne` → A3, fin de process ou process de plus d'un an → A4 | Menu |
+| Historique | Motif de classement : `jamais_contacte` → A1, `contacte_par_autre_ancien` → A2, `nouvelle_campagne` → A3. Prioritaire : toute action de process ou de fin de process dans Boond, quel que soit son âge → A4 (l'année vient de cette action) | Menu |
 | Séniorité | Titre Boond : QA, Test, Qualité → QA ; Junior, Associate, Alternant → PO1 ; Senior, Lead, Head, Principal, Staff, Group, Director, VP → PO3 ; sinon PO2 | Menu |
 | Discipline | Titre Boond : QA, Test → D-QA ; Data → D-DATA ; IA, AI, ML, GenAI → D-IA ; Builder, No-code, Automation → D-BUILD ; sinon D-DIGITAL | Menu |
 
-Titre ambigu : le bloc par défaut est appliqué et le menu le signale.
+Titre ambigu : le bloc par défaut est appliqué et la fiche le signale. Entreprise et ancienneté (A1) se saisissent sur la fiche, ne sont jamais enregistrées ; vides, l'accroche passe au repli.
 
 ## Accroche, selon l'historique
 

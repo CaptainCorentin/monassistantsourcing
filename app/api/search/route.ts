@@ -34,7 +34,8 @@ function sanitize(raw: unknown): SearchResult | null {
       nextContactTypeOf: typeof c.nextContactTypeOf === "number" ? c.nextContactTypeOf : null,
       lastContact: lc && typeof lc.typeOf === "number" ? { typeOf: lc.typeOf, date: str(lc.date), byMe: lc.byMe === true } : null,
       eligibleFrom: typeof c.eligibleFrom === "string" ? c.eligibleFrom : null,
-      updateDate: typeof c.updateDate === "string" ? c.updateDate : null
+      updateDate: typeof c.updateDate === "string" ? c.updateDate : null,
+      pastProcessDate: typeof c.pastProcessDate === "string" ? c.pastProcessDate.slice(0, 40) : null
     });
   }
   const excluded: Record<string, number> = {};

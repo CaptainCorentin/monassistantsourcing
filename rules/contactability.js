@@ -66,7 +66,7 @@ function normalizeAction(raw) {
  * @param {number} [input.now]         timestamp ms, injectable pour les tests
  * @returns {{category: "a_contacter"|"a_relancer"|"vivier"|"bloque", reasons: string[],
  *            nextContactTypeOf: number|null, lastContact: object|null, contactCount: number,
- *            eligibleFrom: string|null, warnings: string[]}}
+ *            eligibleFrom: string|null, pastProcessDate: string|null, warnings: string[]}}
  */
 function classifyCandidate({ state, actions = [], now = Date.now() }, config = CONFIG) {
   const warnings = [];
@@ -79,6 +79,10 @@ function classifyCandidate({ state, actions = [], now = Date.now() }, config = C
   }
 
   const contacts = parsed.filter(a => CONTACT_TYPES.includes(a.typeOf));
+  // Dernier process WeFiiT, quel que soit son âge : sert à repérer un ex-candidat (accroche A4).
+  const processActions = parsed.filter(a =>
+    config.processTypes.includes(a.typeOf) || config.endOfProcessTypes.includes(a.typeOf));
+  const lastProcess = processActions.reduce((best, a) => (!best || a.time > best.time ? a : best), null);
   const result = (category, reasons, extra = {}) => ({
     category,
     reasons,
@@ -86,6 +90,7 @@ function classifyCandidate({ state, actions = [], now = Date.now() }, config = C
     lastContact: null,
     contactCount: contacts.length,
     eligibleFrom: null,
+    pastProcessDate: lastProcess ? lastProcess.startDate : null,
     warnings,
     ...extra
   });

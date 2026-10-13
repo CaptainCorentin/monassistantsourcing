@@ -3,6 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Candidate, Category, SearchResult, Template } from "@/lib/types";
 import { exampleTemplates } from "@/lib/example";
+import {
+  assemble, defaultMessageKind, detectDiscipline, detectHook, detectSeniority, fillVariables,
+  DEFAULT_BLOCKS, DISCIPLINES, HOOKS, KIND_LABELS, MESSAGE_KINDS, SENIORITIES,
+  type Block, type Choice, type Discipline, type Hook, type MessageKind, type Seniority
+} from "@/lib/messages";
 
 const STATES: Record<number, string> = { 0: "A traiter !", 5: "P+", 11: "LN+ (vivier)", 13: "Vivier +++" };
 const CATEGORIES: { key: Category; label: string }[] = [
@@ -44,17 +49,12 @@ function boondUrl(id: string): string | null {
   return /^\d+$/.test(id) ? `https://ui.boondmanager.com/candidates/${id}/overview` : null;
 }
 
-function fillTemplate(body: string, c: Candidate) {
-  const vars: Record<string, string> = { prenom: c.firstName, nom: c.lastName, titre: c.title, ville: c.town };
-  const missing = new Set<string>();
-  const text = body.replace(/\{\{\s*([a-zé]+)\s*\}\}/gi, (m, key: string) => {
-    const k = key.toLowerCase().replace("é", "e");
-    if (!(k in vars)) return m;
-    const v = String(vars[k] || "").trim();
-    if (!v) missing.add(k);
-    return v;
-  });
-  return { text, missing: [...missing] };
+function candidateVars(c: Candidate, extra: Record<string, string> = {}) {
+  const year = c.pastProcessDate ? new Date(c.pastProcessDate).getFullYear() : NaN;
+  return {
+    prenom: c.firstName, nom: c.lastName, titre: c.title, ville: c.town,
+    annee_process: Number.isNaN(year) ? "" : String(year), entreprise: "", anciennete: "", ...extra
+  };
 }
 
 type Flag = { kind: "masque" | "reporte"; until?: number };
@@ -82,6 +82,8 @@ export default function Sourcing() {
   const [reasonFilter, setReasonFilter] = useState("");
   const [templates, setTemplates] = useState<Template[]>([]);
   const [templatesError, setTemplatesError] = useState("");
+  const [blocks, setBlocks] = useState<Block[]>(DEFAULT_BLOCKS);
+  const [blocksError, setBlocksError] = useState("");
   const [flags, setFlags] = useState<Map<string, Flag>>(new Map());
   const [pending, setPending] = useState(false);
   const [toast, setToast] = useState("");
@@ -90,6 +92,9 @@ export default function Sourcing() {
     api<Template[]>("/api/templates")
       .then(setTemplates)
       .catch((e: Error) => { setTemplates(exampleTemplates); setTemplatesError(`${e.message} Messages d'exemple affichés, non sauvegardés.`); });
+    api<Block[]>("/api/blocks")
+      .then(rows => rows.length ? setBlocks(rows) : setBlocksError("Banque vide dans Supabase : textes par défaut affichés."))
+      .catch((e: Error) => setBlocksError(`${e.message} Textes par défaut affichés, non modifiables.`));
     api<{ boondId: string; kind: Flag["kind"]; until: string | null }[]>("/api/flags")
       .then(rows => setFlags(new Map(rows.map(r => [r.boondId, { kind: r.kind, until: r.until ? Date.parse(r.until) : undefined }]))))
       .catch(() => notify("Impossible de charger les candidats masqués."));
@@ -273,11 +278,13 @@ export default function Sourcing() {
         )}
         <div className="list">
           {inTab.length ? inTab.map(c => (
-            <CandidateCard key={c.id} c={c} templates={templates} onFlag={setFlag} onCopied={notify} />
+            <CandidateCard key={c.id} c={c} blocks={blocks} templates={templates} onFlag={setFlag} onCopied={notify} />
           )) : <p className="empty">Aucun candidat dans cette catégorie pour cette recherche.</p>}
         </div>
       </section>
       )}
+
+      <BlocksEditor blocks={blocks} setBlocks={setBlocks} notify={notify} error={blocksError} />
 
       <Templates templates={templates} setTemplates={setTemplates} notify={notify} error={templatesError} />
 
@@ -286,28 +293,53 @@ export default function Sourcing() {
   );
 }
 
-function CandidateCard({ c, templates, onFlag, onCopied }: {
+const BANK = "banque";
+
+function CandidateCard({ c, blocks, templates, onFlag, onCopied }: {
   c: Candidate;
+  blocks: Block[];
   templates: Template[];
   onFlag: (id: string, kind: Flag["kind"], days?: number) => void;
   onCopied: (msg: string) => void;
 }) {
+  const detected = useMemo(() => ({
+    seniority: detectSeniority(c.title),
+    discipline: detectDiscipline(c.title)
+  }), [c.title]);
+  const [source, setSource] = useState(BANK);
+  const [choice, setChoice] = useState<Choice>(() => ({
+    kind: defaultMessageKind(c.category, c.nextContactTypeOf),
+    hook: detectHook(c.reasons[0], c.pastProcessDate),
+    seniority: detected.seniority.value,
+    discipline: detected.discipline.value
+  }));
+  const [entreprise, setEntreprise] = useState("");
+  const [anciennete, setAnciennete] = useState("");
+
   const options = templates.filter(t => t.category === c.category || t.category === "tous");
-  const [chosen, setChosen] = useState(options[0]?.id ?? "");
-  const tpl = options.find(t => t.id === chosen) ?? options[0];
-  const filled = tpl ? fillTemplate(tpl.body, c) : null;
-  const len = filled ? [...filled.text].length : 0;
-  const over = tpl?.channel === "invitation" && len > INVITATION_LIMIT;
+  const tpl = options.find(t => t.id === source);
+  const vars = candidateVars(c, { entreprise, anciennete });
+  const filled = tpl ? fillVariables(tpl.body, vars) : assemble(choice, blocks, vars);
+  const isInvitation = tpl ? tpl.channel === "invitation" : choice.kind === "invitation";
+  const len = [...filled.text].length;
+  const over = isInvitation && len > INVITATION_LIMIT;
   const li = safeLinkedin(c.linkedinUrl);
   const bu = boondUrl(c.id);
   const name = `${c.firstName} ${c.lastName}`.trim() || "Sans nom";
+  const usesBlocks = !tpl;
+  const premier = usesBlocks && choice.kind === "premier";
+  const unsure = [
+    usesBlocks && !detected.seniority.sure && choice.kind === "premier" ? "séniorité" : "",
+    usesBlocks && !detected.discipline.sure && choice.kind !== "R1" ? "discipline" : ""
+  ].filter(Boolean);
   const warnings = [
-    filled?.missing.length ? `Champ vide dans Boond : ${filled.missing.join(", ")}. Relis le message avant de l'envoyer.` : "",
+    filled.missing.length ? `Champ vide : ${filled.missing.join(", ")}. Relis le message avant de l'envoyer.` : "",
+    unsure.length ? `Titre peu parlant : ${unsure.join(" et ")} choisie${unsure.length > 1 ? "s" : ""} par défaut, vérifie.` : "",
     over ? "Trop long pour une note d'invitation." : ""
   ].filter(Boolean).join(" ");
+  const set = <K extends keyof Choice>(k: K, v: Choice[K]) => setChoice(prev => ({ ...prev, [k]: v }));
 
   async function copy(e: React.MouseEvent<HTMLButtonElement>) {
-    if (!filled) return;
     try {
       await navigator.clipboard.writeText(filled.text);
       onCopied("Message copié");
@@ -355,23 +387,48 @@ function CandidateCard({ c, templates, onFlag, onCopied }: {
         )}
       </div>
       <div className="composer">
-        {tpl && filled ? (
-          <>
-            <div className="row">
-              <select aria-label={`Message pour ${name}`} value={tpl.id} onChange={e => setChosen(e.target.value)}>
-                {options.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
-              <span className={`counter mono${over ? " over" : ""}`}>
-                {tpl.channel === "invitation" ? `${len} / ${INVITATION_LIMIT}` : `${len} caractères`}
-              </span>
-              <button className="btn small primary" type="button" onClick={copy}>Copier</button>
-            </div>
-            {warnings && <p className="warn">{warnings}</p>}
-            <div className="preview">{filled.text}</div>
-          </>
-        ) : (
-          <p className="hint">Aucun message type pour cette catégorie. Ajoute-en un dans « Messages types ».</p>
+        <div className="row">
+          <select aria-label={`Source du message pour ${name}`} value={source} onChange={e => setSource(e.target.value)}>
+            <option value={BANK}>Banque de messages</option>
+            {options.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+          {usesBlocks && (
+            <select aria-label="Type de message" value={choice.kind} onChange={e => set("kind", e.target.value as MessageKind)}>
+              {MESSAGE_KINDS.map(k => <option key={k.key} value={k.key}>{k.label}</option>)}
+            </select>
+          )}
+          {premier && (
+            <select aria-label="Accroche" value={choice.hook} onChange={e => set("hook", e.target.value as Hook)}>
+              {HOOKS.map(h => <option key={h.key} value={h.key}>{h.label}</option>)}
+            </select>
+          )}
+          {premier && (
+            <select aria-label="Séniorité" value={choice.seniority} onChange={e => set("seniority", e.target.value as Seniority)}>
+              {SENIORITIES.map(x => <option key={x.key} value={x.key}>{x.label}</option>)}
+            </select>
+          )}
+          {usesBlocks && choice.kind !== "R1" && (
+            <select aria-label="Discipline" value={choice.discipline} onChange={e => set("discipline", e.target.value as Discipline)}>
+              {DISCIPLINES.map(x => <option key={x.key} value={x.key}>{x.label}</option>)}
+            </select>
+          )}
+        </div>
+        {premier && choice.hook === "A1" && (
+          <div className="row">
+            <input type="text" aria-label="Entreprise actuelle" placeholder="Entreprise actuelle (LinkedIn)" maxLength={80}
+              value={entreprise} onChange={e => setEntreprise(e.target.value)} />
+            <input type="text" aria-label="Ancienneté" placeholder="Ancienneté (ex. 3 ans)" maxLength={30}
+              value={anciennete} onChange={e => setAnciennete(e.target.value)} />
+          </div>
         )}
+        <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+          <span className={`counter mono${over ? " over" : ""}`}>
+            {isInvitation ? `${len} / ${INVITATION_LIMIT}` : `${len} caractères`}
+          </span>
+          <button className="btn small primary" type="button" onClick={copy}>Copier</button>
+        </div>
+        {warnings && <p className="warn">{warnings}</p>}
+        <div className="preview">{filled.text}</div>
       </div>
       <div className="card-foot">
         <span className="hint mono">#{c.id}</span>
@@ -382,6 +439,78 @@ function CandidateCard({ c, templates, onFlag, onCopied }: {
         </div>
       </div>
     </article>
+  );
+}
+
+function BlocksEditor({ blocks, setBlocks, notify, error }: {
+  blocks: Block[];
+  setBlocks: React.Dispatch<React.SetStateAction<Block[]>>;
+  notify: (msg: string) => void;
+  error: string;
+}) {
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [saving, setSaving] = useState(false);
+  const kinds = [...new Set(blocks.map(b => b.kind))];
+  const original = (code: string) => DEFAULT_BLOCKS.find(b => b.code === code)?.body;
+
+  async function save(code: string) {
+    if (!draft.trim()) return;
+    setSaving(true);
+    try {
+      const saved = await api<Block>(`/api/blocks/${encodeURIComponent(code)}`, "PUT", { body: draft.slice(0, 2000) });
+      setBlocks(prev => prev.map(b => b.code === saved.code ? saved : b));
+      setEditing(null);
+      notify("Bloc enregistré");
+    } catch (err) {
+      notify((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="panel">
+      <details>
+        <summary><h2 style={{ display: "inline" }}>Banque de messages</h2></summary>
+        <p className="hint" style={{ margin: "6px 0 0" }}>
+          Chaque message est assemblé à partir de ces blocs. Une modification s&apos;applique tout de suite à toutes les fiches.
+          Variables : <code>{"{{prenom}}"}</code> <code>{"{{titre}}"}</code> <code>{"{{entreprise}}"}</code> <code>{"{{anciennete}}"}</code> <code>{"{{annee_process}}"}</code> <code>{"{{argument_metier}}"}</code>.
+        </p>
+        {error && <p className="warn" style={{ marginTop: 10 }}>{error}</p>}
+        {kinds.map(kind => (
+          <div key={kind} style={{ marginTop: 14 }}>
+            <h3 style={{ margin: "0 0 6px", fontSize: 14 }}>{KIND_LABELS[kind] ?? kind}</h3>
+            <div className="tpl-list">
+              {blocks.filter(b => b.kind === kind).map(b => (
+                <div className="tpl" key={b.code} style={{ display: "block" }}>
+                  <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                    <div className="name">{b.label}</div>
+                    {editing !== b.code && !error && (
+                      <button className="btn small" type="button" onClick={() => { setEditing(b.code); setDraft(b.body); }}>Modifier</button>
+                    )}
+                  </div>
+                  {editing === b.code ? (
+                    <form onSubmit={e => { e.preventDefault(); save(b.code); }}>
+                      <textarea aria-label={`Texte du bloc ${b.label}`} maxLength={2000} required value={draft} onChange={e => setDraft(e.target.value)} />
+                      <div className="row" style={{ justifyContent: "flex-end" }}>
+                        {original(b.code) && original(b.code) !== draft && (
+                          <button className="btn small" type="button" onClick={() => setDraft(original(b.code) ?? draft)}>Texte d&apos;origine</button>
+                        )}
+                        <button className="btn small" type="button" onClick={() => setEditing(null)}>Annuler</button>
+                        <button className="btn small primary" type="submit" disabled={saving}>{saving ? "Enregistrement…" : "Enregistrer"}</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="hint" style={{ whiteSpace: "pre-wrap", marginTop: 4 }}>{b.body}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </details>
+    </section>
   );
 }
 
@@ -446,7 +575,7 @@ function Templates({ templates, setTemplates, notify, error }: {
   return (
     <section className="panel">
       <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-        <h2>Messages types</h2>
+        <h2>Messages types libres</h2>
         <button className="btn small" type="button" onClick={() => edit(null)}>Nouveau message</button>
       </div>
       <p className="hint" style={{ margin: "6px 0 0" }}>

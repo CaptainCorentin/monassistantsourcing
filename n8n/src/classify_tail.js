@@ -23,7 +23,8 @@ candidates.forEach((c, i) => {
     reasons: r.reasons,
     nextContactTypeOf: r.nextContactTypeOf,
     lastContact: r.lastContact && { typeOf: r.lastContact.typeOf, date: r.lastContact.date, byMe: r.lastContact.byMe },
-    eligibleFrom: r.eligibleFrom
+    eligibleFrom: r.eligibleFrom,
+    pastProcessDate: r.pastProcessDate
   });
 });
 
