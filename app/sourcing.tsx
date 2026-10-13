@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Candidate, Category, SearchResult, Template } from "@/lib/types";
-import { exampleResult, exampleTemplates } from "@/lib/example";
+import { exampleTemplates } from "@/lib/example";
 
 const STATES: Record<number, string> = { 0: "A traiter !", 5: "P+", 11: "LN+ (vivier)", 13: "Vivier +++" };
 const CATEGORIES: { key: Category; label: string }[] = [
@@ -76,8 +76,10 @@ async function api<T>(path: string, method = "GET", body?: unknown): Promise<T> 
 }
 
 export default function Sourcing() {
-  const [result, setResult] = useState<SearchResult>(() => exampleResult(100));
+  const [result, setResult] = useState<SearchResult | null>(null);
+  const [searchError, setSearchError] = useState("");
   const [tab, setTab] = useState<Category>("a_contacter");
+  const [reasonFilter, setReasonFilter] = useState("");
   const [templates, setTemplates] = useState<Template[]>([]);
   const [templatesError, setTemplatesError] = useState("");
   const [flags, setFlags] = useState<Map<string, Flag>>(new Map());
@@ -94,9 +96,10 @@ export default function Sourcing() {
   }, []);
 
   const [keywords, setKeywords] = useState("");
-  const [sortOrder, setSortOrder] = useState("updateDate:asc");
-  const [limit, setLimit] = useState("100");
-  const [states, setStates] = useState<number[]>([0, 5, 11, 13]);
+  const [sortOrder, setSortOrder] = useState("updateDate:desc");
+  const [maxChecks, setMaxChecks] = useState("300");
+  const [scope, setScope] = useState<"mine" | "all">("mine");
+  const [states, setStates] = useState<number[]>([11, 13]);
 
   function notify(msg: string) {
     setToast(msg);
@@ -107,27 +110,22 @@ export default function Sourcing() {
     const f = flags.get(id);
     return !!f && (f.kind === "masque" || (f.until ?? 0) > Date.now());
   };
-  const visible = useMemo(() => result.candidates.filter(c => !isFlagged(c.id)), [result, flags]); // eslint-disable-line react-hooks/exhaustive-deps
+  const visible = useMemo(() => (result?.candidates ?? []).filter(c => !isFlagged(c.id)), [result, flags]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function onSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!states.length) return notify("Choisis au moins un état");
     const [sort, order] = sortOrder.split(":");
     setPending(true);
+    setSearchError("");
     try {
-      const res = await fetch("/api/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ keywords, states, sort, order, limit: Number(limit) })
-      });
-      if (res.status === 401) { window.location.href = "/login"; return; }
-      if (!res.ok) throw new Error();
-      const data: SearchResult = await res.json();
+      const data = await api<SearchResult>("/api/search", "POST", { keywords, states, sort, order, scope, maxChecks: Number(maxChecks) });
       setResult(data);
       const first = CATEGORIES.find(c => data.candidates.some(x => x.category === c.key && !isFlagged(x.id)));
       setTab(first ? first.key : "a_contacter");
-    } catch {
-      notify("La recherche a échoué. Réessaie dans un instant.");
+      setReasonFilter("");
+    } catch (err) {
+      setSearchError((err as Error).message || "La recherche a échoué. Réessaie dans un instant.");
     } finally {
       setPending(false);
     }
@@ -150,21 +148,28 @@ export default function Sourcing() {
     window.location.href = "/login";
   }
 
-  const hiddenByMe = result.candidates.length - visible.length;
-  const excludedEntries = Object.entries(result.excluded).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+  const hiddenByMe = (result?.candidates.length ?? 0) - visible.length;
+  const excludedEntries = Object.entries(result?.excluded ?? {}).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+  const contactables = visible.filter(c => c.category !== "vivier").length;
   if (hiddenByMe) excludedEntries.push(["masque", hiddenByMe]);
   const excludedTotal = excludedEntries.reduce((a, [, n]) => a + n, 0);
-  const inTab = visible.filter(c => c.category === tab);
+  const tabAll = visible.filter(c => c.category === tab);
+  const reasonCounts = Object.entries(tabAll.reduce<Record<string, number>>((acc, c) => {
+    const r = c.reasons[0] || "autre";
+    acc[r] = (acc[r] || 0) + 1;
+    return acc;
+  }, {})).sort((a, b) => b[1] - a[1]);
+  const inTab = reasonFilter ? tabAll.filter(c => (c.reasons[0] || "autre") === reasonFilter) : tabAll;
 
   return (
     <div className="wrap">
       <header className="top">
         <div>
           <h1>Vivier Boond</h1>
-          <p className="muted" style={{ margin: "4px 0 0" }}>Ton périmètre Boond, trié en à contacter, à relancer et vivier.</p>
+          <p className="muted" style={{ margin: "4px 0 0" }}>Le vivier Boond, vérifié fiche par fiche et trié en à contacter, à relancer et vivier.</p>
         </div>
         <div className="header-actions">
-          {result.example && <span className="badge-example">Données d&apos;exemple</span>}
+          {result?.example && <span className="badge-example">Données d&apos;exemple</span>}
           <button className="btn small" type="button" onClick={logout}>Se déconnecter</button>
         </div>
       </header>
@@ -180,17 +185,24 @@ export default function Sourcing() {
             <div className="field">
               <label htmlFor="q-sort">Ordre</label>
               <select id="q-sort" value={sortOrder} onChange={e => setSortOrder(e.target.value)}>
-                <option value="updateDate:asc">Moins récemment mis à jour</option>
                 <option value="updateDate:desc">Plus récemment mis à jour</option>
+                <option value="updateDate:asc">Moins récemment mis à jour</option>
                 <option value="creationDate:desc">Plus récemment créés</option>
               </select>
             </div>
             <div className="field">
-              <label htmlFor="q-limit">Vérifier</label>
-              <select id="q-limit" value={limit} onChange={e => setLimit(e.target.value)}>
-                <option value="25">25 candidats</option>
-                <option value="50">50 candidats</option>
-                <option value="100">100 candidats</option>
+              <label htmlFor="q-scope">Périmètre</label>
+              <select id="q-scope" value={scope} onChange={e => setScope(e.target.value as "mine" | "all")}>
+                <option value="mine">Mes fiches</option>
+                <option value="all">Tout le vivier WeFiiT</option>
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="q-checks">Vérifier</label>
+              <select id="q-checks" value={maxChecks} onChange={e => setMaxChecks(e.target.value)}>
+                <option value="100">100 fiches</option>
+                <option value="200">200 fiches</option>
+                <option value="300">300 fiches</option>
               </select>
             </div>
           </div>
@@ -209,15 +221,28 @@ export default function Sourcing() {
             </div>
             <button className="btn primary" type="submit" disabled={pending}>{pending ? "Recherche en cours…" : "Lancer la recherche"}</button>
           </div>
-          {pending && <div className="progress"><div /></div>}
+          {pending && <><div className="progress"><div /></div><p className="hint" style={{ margin: 0 }}>Lecture de l&apos;historique de chaque fiche dans Boond : compte 10 à 40 secondes.</p></>}
         </form>
       </section>
 
+      {searchError && <p className="warn" role="alert">{searchError}</p>}
+      {result?.notice && <p className="warn">{result.notice}</p>}
+
+      {!result ? (
+        <section className="panel empty">
+          <h2>Aucune recherche lancée</h2>
+          <p style={{ margin: "8px auto 0", maxWidth: "52ch" }}>
+            Par défaut, la recherche porte sur tes fiches LN+ et Vivier +++. Chaque fiche est vérifiée dans Boond
+            (historique d&apos;actions) avant d&apos;être proposée : seuls les candidats contactables apparaissent.
+          </p>
+        </section>
+      ) : (
       <section className="list" aria-live="polite">
         <div className="summary">
-          <span><strong>{result.searchTotal}</strong> résultats Boond</span>
-          <span><strong>{result.checked}</strong> vérifiés</span>
-          <span><strong>{visible.length}</strong> proposés</span>
+          <span><strong>{result.searchTotal}</strong> fiches Boond</span>
+          <span><strong>{result.checked}</strong> vérifiées</span>
+          <span><strong>{contactables}</strong> contactables</span>
+          <span><strong>{visible.length - contactables}</strong> en vivier</span>
         </div>
         {excludedTotal > 0 && (
           <details className="excluded">
@@ -231,17 +256,28 @@ export default function Sourcing() {
         )}
         <div className="tabs" role="tablist">
           {CATEGORIES.map(c => (
-            <button key={c.key} className="tab" role="tab" type="button" aria-selected={tab === c.key} onClick={() => setTab(c.key)}>
+            <button key={c.key} className="tab" role="tab" type="button" aria-selected={tab === c.key} onClick={() => { setTab(c.key); setReasonFilter(""); }}>
               {c.label}<span className="n">{visible.filter(x => x.category === c.key).length}</span>
             </button>
           ))}
         </div>
+        {reasonCounts.length > 1 && (
+          <div className="chips" role="group" aria-label="Filtrer par motif">
+            <button type="button" className={`btn small${reasonFilter ? "" : " primary"}`} onClick={() => setReasonFilter("")}>Tous ({tabAll.length})</button>
+            {reasonCounts.map(([r, n]) => (
+              <button key={r} type="button" className={`btn small${reasonFilter === r ? " primary" : ""}`} onClick={() => setReasonFilter(r)}>
+                {REASON_LABELS[r] || r} ({n})
+              </button>
+            ))}
+          </div>
+        )}
         <div className="list">
           {inTab.length ? inTab.map(c => (
             <CandidateCard key={c.id} c={c} templates={templates} onFlag={setFlag} onCopied={notify} />
           )) : <p className="empty">Aucun candidat dans cette catégorie pour cette recherche.</p>}
         </div>
       </section>
+      )}
 
       <Templates templates={templates} setTemplates={setTemplates} notify={notify} error={templatesError} />
 
@@ -296,7 +332,9 @@ function CandidateCard({ c, templates, onFlag, onCopied }: {
         <div className="who">
           <h3>{name}</h3>
           <div className="title">{c.title || "Titre non renseigné"}</div>
-          {c.town && <div className="meta">{c.town}</div>}
+          <div className="meta">
+            {[c.town, c.updateDate ? `fiche mise à jour le ${new Date(c.updateDate).toLocaleDateString("fr-FR")}` : ""].filter(Boolean).join(" · ")}
+          </div>
         </div>
         <div className="links">
           {li ? <a href={li} target="_blank" rel="noopener noreferrer">LinkedIn</a> : <span className="muted">Pas de LinkedIn</span>}

@@ -32,7 +32,7 @@ export function exampleResult(limit: number): SearchResult {
   }));
   const excluded = { contacte_par_autre_60j: 21, process_180j: 17, pas_interesse_90j: 12, fin_process_365j: 9, contacte_recemment: 6, rappel_programme: 4 };
   const excludedTotal = Object.values(excluded).reduce((a, b) => a + b, 0);
-  return { example: true, searchTotal: 420, checked: Math.min(limit, candidates.length + excludedTotal), candidates, excluded };
+  return { example: true, searchTotal: 214, checked: Math.min(limit, candidates.length + excludedTotal), candidates, excluded };
 }
 
 // Messages d'exemple, remplacés par ceux de Supabase au jalon 3.

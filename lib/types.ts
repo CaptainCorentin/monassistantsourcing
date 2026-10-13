@@ -15,6 +15,7 @@ export type Candidate = {
   nextContactTypeOf: number | null;
   lastContact: LastContact | null;
   eligibleFrom: string | null;
+  updateDate?: string | null;
 };
 
 export type SearchParams = {
@@ -22,7 +23,8 @@ export type SearchParams = {
   states: number[];
   sort: "updateDate" | "creationDate";
   order: "asc" | "desc";
-  limit: 25 | 50 | 100;
+  scope: "mine" | "all";
+  maxChecks: 100 | 200 | 300;
 };
 
 export type SearchResult = {
@@ -31,6 +33,8 @@ export type SearchResult = {
   checked: number;
   candidates: Candidate[];
   excluded: Record<string, number>;
+  contactables?: number;
+  notice?: string;
 };
 
 export type Template = {

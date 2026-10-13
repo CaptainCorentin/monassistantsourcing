@@ -11,7 +11,7 @@ Navigateur ── mot de passe (cookie httpOnly signé) ──► Next.js sur Ve
                                                         └─► API Boond en lecture seule (recherche filtrée + actions par candidat)
 ```
 
-- Aucun stockage de données candidat. Les candidats sont lus dans Boond à chaque recherche, filtrée et paginée (50 par page).
+- Aucun stockage de données candidat. Les candidats sont lus dans Boond à chaque recherche : 1 appel liste filtré, puis 1 appel historique par fiche (300 fiches max, 10 à 40 s).
 - Supabase contient les templates et les statuts propres à l'interface (masqué, reporté), indexés par id Boond uniquement.
 - Le workflow de l'extension (`bZsfmIdulu88qB1Y`) **n'est pas modifié ni appelé**. Les règles sont dupliquées dans `rules/contactability.js`, testé ici puis collé dans le nœud Code du nouveau workflow.
 - La webapp est en **lecture seule** : aucune écriture dans Boond. Le contact se fait depuis LinkedIn avec l'extension.
@@ -47,6 +47,7 @@ Hypothèses par défaut, à confirmer : l'état 0 correspond à "à traiter" ; u
 - Paramètres de recherche validés côté serveur avant tout appel (`lib/search-params.ts`).
 - Données Boond affichées en texte (React échappe tout), liens LinkedIn limités à `https://*.linkedin.com`, lien Boond construit à partir d'un id numérique.
 - Aucun credential Boond, N8N ou Supabase côté navigateur.
+- Réponse N8N filtrée champ par champ côté serveur (`app/api/search/route.ts`) avant d'atteindre le navigateur.
 - Écritures API : refusées si l'en-tête `Origin` n'est pas celui de la webapp ou si le corps n'est pas du JSON (en plus du cookie `SameSite=strict`).
 - Supabase (`lbrdtyxlkfeiaveuinux`, région Paris) : RLS activé sans policy, droits retirés à `anon` et `authenticated`. Seul le serveur y accède avec la clé `service_role`. Schéma : `supabase/migrations/0001_init.sql`.
 
@@ -58,6 +59,10 @@ Hypothèses par défaut, à confirmer : l'état 0 correspond à "à traiter" ; u
 | `SESSION_SECRET` | Secret de signature des sessions, 32 caractères minimum |
 | `SUPABASE_URL` | `https://lbrdtyxlkfeiaveuinux.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Clé `service_role` (Supabase, Project Settings, API). Jamais préfixée `NEXT_PUBLIC_`. |
+| `N8N_WEBHOOK_URL` | `https://wefiit.app.n8n.cloud/webhook/vivier-boond-search` |
+| `N8N_WEBHOOK_KEY` | Clé du webhook (64 caractères hexadécimaux). N8N ne stocke que son empreinte SHA-256. |
+
+Sans `N8N_WEBHOOK_URL` / `N8N_WEBHOOK_KEY`, la recherche renvoie des données d'exemple avec un bandeau d'avertissement.
 
 ## Hors périmètre
 
