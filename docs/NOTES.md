@@ -23,6 +23,9 @@ Tenu pendant le build en autonomie. Chaque entrée est datée et classée. Les q
 | 13/10 | Accès à N8N | Le proxy de mon environnement refuse aussi `wefiit.app.n8n.cloud` en HTTP direct : le webhook de production n'a été testé que via le MCP (mode manuel), et la webapp contre un faux N8N local au même format. | À vérifier en ligne par Corentin. |
 | 13/10 | Données dans N8N | Les exécutions en erreur conservent leurs données, y compris l'en-tête `X-Vivier-Key` et des fiches candidats. Les exécutions réussies ne sont plus conservées. | Accepté : l'accès N8N donne déjà accès à Boond. À purger si une erreur survient. |
 | 13/10 | Périmètre « mine » | `perimeterManagers[]=15675` renvoie 214 fiches LN+ / Vivier +++, mais 22 n'ont pas Corentin en responsable principal (sans doute responsable RH). | Filtrées dans « Lister les candidats à vérifier ». |
+| 13/10 | Preuve en production | Pour lire le résultat d'une exécution de production, la conservation des exécutions réussies a été rallumée le temps d'un test puis recoupée. Les exécutions 12137 (manuelle) et 12141 (production) contiennent des fiches candidats et la clé. | **À supprimer** dans N8N, Executions, par Corentin (le MCP ne permet pas de supprimer). |
+| 13/10 | Variables Vercel | Impossible de lire ou d'écrire les variables du projet via le connecteur. | Contourné : URL N8N par défaut dans le code, clé lue dans Supabase `app_config` si la variable manque. |
+| 13/10 | Usage en ligne | Aucun appel de la webapp en ligne dans les journaux Supabase à 08:30 : soit pas encore de connexion, soit variables Supabase absentes sur Vercel. | À vérifier par Corentin. |
 | 12/10 | API Boond | `states[]` est ignoré sans erreur, le bon filtre est `candidateStates[]`. `maxResults` sur `/actions` plafonne à 100. | Pris en compte. |
 | 12/10 | Workflow de l'extension | Codes d'action mal libellés (40 = Entretien 1, pas Pré-qualification) : pré-qualification, entretien entre pairs, EM, signature et fin de process à notre initiative ne bloquent pas un contact. | Corrigé dans la webapp seulement. L'extension n'est pas modifiée (décision). |
 | 12/10 | Workflow de l'extension | Recherche par nom en `OR` sans `maxResults` : risque de faux « absent de Boond » et donc de doublons. Historique d'actions lu sans `maxResults`. | Signalé, non corrigé (décision). |
@@ -30,7 +33,7 @@ Tenu pendant le build en autonomie. Chaque entrée est datée et classée. Les q
 
 ## Résultat de référence (13/10, exécution 12137)
 
-Mes fiches LN+ et Vivier +++ : 214 fiches Boond, 192 vérifiées, **136 contactables** (136 à contacter, 0 à relancer), 3 en vivier, 53 écartées (17 contactées par un collègue il y a moins de 60 j, 16 fin de process, 11 process en cours, 9 rappel programmé). 136 sur 136 ont un lien LinkedIn. Durée : 10 s.
+Mes fiches LN+ et Vivier +++ : 214 fiches Boond, 192 vérifiées, **136 contactables** (136 à contacter, 0 à relancer), 3 en vivier, 53 écartées (17 contactées par un collègue il y a moins de 60 j, 16 fin de process, 11 process en cours, 9 rappel programmé). Durée : 10 s. Rejoué en mode production (exécution 12141, webhook publié) avec le même résultat. Les 100 premiers contactables sont exportés hors repo (CSV privé), 99 sur 100 avec LinkedIn.
 
 ## Idées
 

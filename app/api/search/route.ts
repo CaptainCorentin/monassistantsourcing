@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { parseSearchParams } from "@/lib/search-params";
 import { exampleResult } from "@/lib/example";
+import { rest } from "@/lib/supabase";
 import type { Candidate, SearchResult } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -8,6 +9,18 @@ export const runtime = "nodejs";
 export const maxDuration = 120;
 
 const CATEGORIES = new Set(["a_contacter", "a_relancer", "vivier"]);
+const DEFAULT_N8N_URL = "https://wefiit.app.n8n.cloud/webhook/vivier-boond-search";
+
+// Clé du webhook : variable Vercel en priorité, sinon table app_config (lisible par le seul serveur).
+async function webhookKey(): Promise<string | null> {
+  if (process.env.N8N_WEBHOOK_KEY) return process.env.N8N_WEBHOOK_KEY;
+  try {
+    const rows = await rest<{ value: string }[]>("GET", "app_config?select=value&key=eq.n8n_webhook_key");
+    return rows[0]?.value || null;
+  } catch {
+    return null;
+  }
+}
 
 // Ne garde que les champs attendus : la réponse N8N n'est jamais renvoyée telle quelle au navigateur.
 function sanitize(raw: unknown): SearchResult | null {
@@ -57,12 +70,12 @@ export async function POST(req: Request) {
   const params = parseSearchParams(body);
   if (!params) return NextResponse.json({ error: "Paramètres de recherche invalides." }, { status: 400 });
 
-  const url = process.env.N8N_WEBHOOK_URL;
-  const key = process.env.N8N_WEBHOOK_KEY;
-  if (!url || !key) {
+  const url = process.env.N8N_WEBHOOK_URL || DEFAULT_N8N_URL;
+  const key = await webhookKey();
+  if (!key) {
     return NextResponse.json({
       ...exampleResult(params.maxChecks),
-      notice: "N8N n'est pas configuré sur ce déploiement (N8N_WEBHOOK_URL et N8N_WEBHOOK_KEY) : données d'exemple affichées."
+      notice: "Clé N8N introuvable (ni N8N_WEBHOOK_KEY, ni Supabase configuré sur ce déploiement) : données d'exemple affichées."
     });
   }
 

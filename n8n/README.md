@@ -24,7 +24,7 @@ Le code des nœuds Code vit dans `n8n/src/` et `rules/contactability.js`. `n8n/b
 
 1. `openssl rand -hex 32` → nouvelle clé.
 2. `printf %s "<clé>" | sha256sum` → mettre l'empreinte dans le nœud « Clé valide ? ».
-3. Mettre la clé dans Vercel (`N8N_WEBHOOK_KEY`) et redéployer.
+3. Mettre la clé dans Supabase : `update app_config set value = '<clé>' where key = 'n8n_webhook_key'` (ou dans Vercel, `N8N_WEBHOOK_KEY`, prioritaire).
 
 ## TEST LECTURE BOOND (`Gcv02j4UwyOdKeyz`, archivé)
 

@@ -59,10 +59,10 @@ Hypothèses par défaut, à confirmer : l'état 0 correspond à "à traiter" ; u
 | `SESSION_SECRET` | Secret de signature des sessions, 32 caractères minimum |
 | `SUPABASE_URL` | `https://lbrdtyxlkfeiaveuinux.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Clé `service_role` (Supabase, Project Settings, API). Jamais préfixée `NEXT_PUBLIC_`. |
-| `N8N_WEBHOOK_URL` | `https://wefiit.app.n8n.cloud/webhook/vivier-boond-search` |
-| `N8N_WEBHOOK_KEY` | Clé du webhook (64 caractères hexadécimaux). N8N ne stocke que son empreinte SHA-256. |
+| `N8N_WEBHOOK_URL` | Facultatif. Par défaut `https://wefiit.app.n8n.cloud/webhook/vivier-boond-search`. |
+| `N8N_WEBHOOK_KEY` | Facultatif. Par défaut, la clé est lue dans la table Supabase `app_config` (ligne `n8n_webhook_key`). N8N ne stocke que son empreinte SHA-256. |
 
-Sans `N8N_WEBHOOK_URL` / `N8N_WEBHOOK_KEY`, la recherche renvoie des données d'exemple avec un bandeau d'avertissement.
+Sans clé (ni variable, ni Supabase configuré), la recherche renvoie des données d'exemple avec un bandeau d'avertissement.
 
 ## Hors périmètre
 

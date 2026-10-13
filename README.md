@@ -9,11 +9,11 @@ Navigateur ─► Next.js sur Vercel ─┬─► Supabase (messages types, cand
 
 ## Mise en route
 
-1. Vercel, projet `monassistantsourcing`, Settings, Environment Variables : renseigner les 6 variables de `.env.example` (détail dans `docs/DECISIONS.md`).
+1. Vercel, projet `monassistantsourcing`, Settings, Environment Variables : renseigner `APP_PASSWORD`, `SESSION_SECRET`, `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY` (les variables N8N sont facultatives) (détail dans `docs/DECISIONS.md`).
 2. Redéployer.
 3. Ouvrir `/login`, saisir `APP_PASSWORD`, lancer une recherche.
 
-Sans les variables N8N, la recherche affiche des données d'exemple et un bandeau l'indique.
+Sans clé N8N disponible (ni variable, ni Supabase), la recherche affiche des données d'exemple et un bandeau l'indique.
 
 ## Développement
 
