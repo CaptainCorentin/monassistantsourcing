@@ -37,6 +37,8 @@ Mes fiches LN+ et Vivier +++ : 214 fiches Boond, 192 vérifiées, **136 contacta
 
 ## Idées
 
+- **Laisser Claude tester le site en ligne** : dans les réglages de l'environnement cloud (menu de l'environnement dans la barre de titre de la session, puis Edit, Network access), ajouter `monassistantsourcing.vercel.app` et `wefiit.app.n8n.cloud` aux domaines autorisés. Doc : https://code.claude.com/docs/en/cloud-environments#network-access
+
 - **Mémoriser la dernière recherche** côté navigateur (sessionStorage) pour ne pas relancer 300 vérifications à chaque rafraîchissement.
 - **Recherches enregistrées** (« PO Paris LN+ », « QA Vivier +++ ») dans Supabase, lançables en un clic.
 - **Tri par ancienneté de contact** dans « À contacter » : les fiches jamais touchées depuis longtemps d'abord.
