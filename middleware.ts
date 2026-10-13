@@ -14,7 +14,8 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if (pathname === "/login" || pathname === "/api/login") return NextResponse.next();
+  // /api/health se protège elle-même par la clé N8N (voir la route).
+  if (pathname === "/login" || pathname === "/api/login" || pathname === "/api/health") return NextResponse.next();
 
   if (await isValidSession(req.cookies.get(SESSION_COOKIE)?.value)) return NextResponse.next();
 
