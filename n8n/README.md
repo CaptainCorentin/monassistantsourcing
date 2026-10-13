@@ -32,6 +32,12 @@ Contrôles en lecture seule du site déployé : page de connexion, redirection s
 
 Résultat attendu une fois les variables saisies : `sante_avec_cle` renvoie `config.session: true`, `config.supabase: true`, `supabase: "ok"`, `templates: 2`, `n8n: "ok"`.
 
+## TEST WEBAPP VIVIER CONNECTÉE (`caPElLMkTkVWlPTR`)
+
+Parcours connecté du site en ligne, avec une session de test créée en base (jamais le mot de passe) : en-têtes `x-test-session` (jeton) et `x-health-key` (clé N8N), corps `{ "phase": "connecte" | "deconnexion" | "apres" }`. Les appels d'une phase partent en parallèle, d'où la déconnexion dans sa propre phase. Résumé sans données candidats.
+
+Créer une session de test d'une heure (SQL) : `insert into app_sessions (token_hash, expires_at) values (encode(extensions.digest('<jeton>', 'sha256'), 'hex'), now() + interval '1 hour')`.
+
 ## TEST LECTURE BOOND (`Gcv02j4UwyOdKeyz`, archivé)
 
 Sondes en lecture seule de l'API Boond du 12/10/2026 (`probe-boond-lecture-seule.json`). Résultats dans `docs/DECISIONS.md`.
