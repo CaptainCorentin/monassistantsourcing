@@ -26,6 +26,12 @@ Le code des nœuds Code vit dans `n8n/src/` et `rules/contactability.js`. `n8n/b
 2. `printf %s "<clé>" | sha256sum` → mettre l'empreinte dans le nœud « Clé valide ? ».
 3. Mettre la clé dans Supabase : `update app_config set value = '<clé>' where key = 'n8n_webhook_key'` (ou dans Vercel, `N8N_WEBHOOK_KEY`, prioritaire).
 
+## TEST WEBAPP VIVIER EN LIGNE (`vMwmlsis2fg6Fxpd`)
+
+Contrôles en lecture seule du site déployé : page de connexion, redirection sans session, refus des API sans session, mauvais mot de passe, en-têtes de sécurité, et `/api/health` (présence des variables ; avec la clé, appels réels à Supabase et au ping N8N). La clé n'est pas stockée dans le workflow : à l'exécution, l'envoyer dans l'en-tête `x-health-key` du webhook de test.
+
+Résultat attendu une fois les variables saisies : `sante_avec_cle` renvoie `config.session: true`, `config.supabase: true`, `supabase: "ok"`, `templates: 2`, `n8n: "ok"`.
+
 ## TEST LECTURE BOOND (`Gcv02j4UwyOdKeyz`, archivé)
 
 Sondes en lecture seule de l'API Boond du 12/10/2026 (`probe-boond-lecture-seule.json`). Résultats dans `docs/DECISIONS.md`.
