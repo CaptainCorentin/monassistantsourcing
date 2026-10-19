@@ -4,13 +4,16 @@
 // le même ordre que la liste des candidats (un appel Boond par candidat).
 const params = $('Préparer la recherche').first().json.params;
 const searchTotal = $('Boond · Rechercher les candidats').first().json.meta?.totals?.rows ?? null;
-const candidates = $('Lister les candidats à vérifier').all().map(i => i.json);
+const listed = $('Lister les candidats à vérifier').all().map(i => i.json);
+const excludedTitles = listed[0]?.excludedTitles || 0;
+const candidates = listed.map(({ excludedTitles, ...c }) => c);
 const histories = $input.all().map(i => i.json);
 const now = Date.now();
 
 const kept = [];
 const excluded = {};
 const count = key => { excluded[key] = (excluded[key] || 0) + 1; };
+if (excludedTitles) excluded.profil_pad_tr = excludedTitles;
 
 candidates.forEach((c, i) => {
   const h = histories[i];
@@ -24,7 +27,8 @@ candidates.forEach((c, i) => {
     nextContactTypeOf: r.nextContactTypeOf,
     lastContact: r.lastContact && { typeOf: r.lastContact.typeOf, date: r.lastContact.date, byMe: r.lastContact.byMe },
     eligibleFrom: r.eligibleFrom,
-    pastProcessDate: r.pastProcessDate
+    pastProcessDate: r.pastProcessDate,
+    pastProcessByMe: r.pastProcessByMe
   });
 });
 

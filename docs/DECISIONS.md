@@ -20,7 +20,7 @@ Navigateur ── mot de passe (cookie httpOnly signé) ──► Next.js sur Ve
 
 ## Règles de classement
 
-Filtres préalables : état Boond ∈ {0, 5, 11, 13}, `mainManager = 15675`.
+Filtres préalables : état Boond ∈ {0, 5, 11, 13}, `mainManager = 15675`, titre ne commençant pas par PAD ou TR (« PAD1 - … », « TR - … »), écartés avant la lecture de l'historique.
 
 Règles bloquantes (tous auteurs) : pas intéressé (18) < 90 j, rappel (1) dans le futur, fin de process (19, + 133 ajouté) < 365 j, process (40, 45, 130, 134, 43, + 12, 14, 7, 42 ajoutés) < 180 j. Les ajouts corrigent des codes absents de la prod (libellés vérifiés dans le dictionnaire Boond).
 

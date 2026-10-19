@@ -23,10 +23,16 @@ for (const [title, sen, senSure, dis, disSure] of titles) {
 }
 
 test("accroche selon l'historique", () => {
-  assert.equal(detectHook("jamais_contacte", null), "A1");
-  assert.equal(detectHook("contacte_par_autre_ancien", null), "A2");
-  assert.equal(detectHook("nouvelle_campagne", null), "A3");
-  assert.equal(detectHook("contacte_par_autre_ancien", "2024-03-01T10:00:00+0100"), "A4");
+  const c = (state, reason, extra = {}) => ({ state, reasons: [reason], ...extra });
+  assert.equal(detectHook(c(0, "jamais_contacte")), "A1");
+  assert.equal(detectHook(c(0, "contacte_par_autre_ancien")), "A2");
+  assert.equal(detectHook(c(5, "nouvelle_campagne")), "A3");
+  // LN+ / Vivier +++ : échanges déjà eus, l'auteur du dernier process décide
+  assert.equal(detectHook(c(11, "jamais_contacte", { pastProcessDate: "2024-03-01T10:00:00+0100", pastProcessByMe: true })), "A4");
+  assert.equal(detectHook(c(13, "nouvelle_campagne", { pastProcessDate: "2024-03-01T10:00:00+0100", pastProcessByMe: false })), "A5");
+  assert.equal(detectHook(c(11, "contacte_par_autre_ancien")), "A5");
+  // Process tracé hors LN+ / Vivier +++ : même logique
+  assert.equal(detectHook(c(0, "jamais_contacte", { pastProcessDate: "2023-01-01T10:00:00+0100", pastProcessByMe: true })), "A4");
 });
 
 test("type de message par défaut", () => {
@@ -52,9 +58,12 @@ test("1er message : A1 avec entreprise et ancienneté", () => {
   assert.match(r.text, /futurs leaders/);
 });
 
-test("A4 sans année : variable signalée", () => {
-  const r = assemble({ kind: "premier", hook: "A4", seniority: "QA", discipline: "QA" }, DEFAULT_BLOCKS, vars);
-  assert.deepEqual(r.missing, ["annee_process"]);
+test("A4 et A5 : accroches sans variable", () => {
+  for (const hook of ["A4", "A5"]) {
+    const r = assemble({ kind: "premier", hook, seniority: "QA", discipline: "QA" }, DEFAULT_BLOCKS, vars);
+    assert.deepEqual(r.missing, []);
+  }
+  assert.match(assemble({ kind: "premier", hook: "A5", seniority: "PO2", discipline: "DIGITAL" }, DEFAULT_BLOCKS, vars).text, /^Bonjour Léa,\n\nTu avais marqué positivement WeFiiT/);
 });
 
 test("relance 2 et invitation : argument de la discipline, invitation sous 300 caractères", () => {

@@ -89,5 +89,10 @@ test("contactCount et lastContact renseignés", () => {
 test("date du dernier process, quel que soit son âge", () => {
   const r = classifyCandidate({ state: 11, actions: [action(40, 700), action(133, 400), action(131, 10, OTHER)], now: NOW });
   assert.equal(r.pastProcessDate, new Date(NOW - 400 * 86400000).toISOString());
-  assert.equal(classifyCandidate({ state: 11, actions: [action(131, 100, OTHER)], now: NOW }).pastProcessDate, null);
+  assert.equal(r.pastProcessByMe, true);
+  const other = classifyCandidate({ state: 11, actions: [action(12, 500), action(12, 400, OTHER)], now: NOW });
+  assert.equal(other.pastProcessByMe, false);
+  const none = classifyCandidate({ state: 11, actions: [action(131, 100, OTHER)], now: NOW });
+  assert.equal(none.pastProcessDate, null);
+  assert.equal(none.pastProcessByMe, null);
 });

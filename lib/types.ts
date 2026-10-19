@@ -17,6 +17,7 @@ export type Candidate = {
   eligibleFrom: string | null;
   updateDate?: string | null;
   pastProcessDate?: string | null;
+  pastProcessByMe?: boolean | null;
 };
 
 export type SearchParams = {

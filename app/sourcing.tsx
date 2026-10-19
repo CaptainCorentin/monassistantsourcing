@@ -30,6 +30,7 @@ const REASON_LABELS: Record<string, string> = {
   process_180j: "Process en cours ou récent (moins de 180 j)",
   contacte_par_autre_60j: "Contacté par un autre recruteur il y a moins de 60 j",
   contacte_recemment: "Contacté par toi il y a moins de 7 j",
+  profil_pad_tr: "Profils PAD / TR",
   masque: "Masqués ou reportés par toi"
 };
 const INVITATION_LIMIT = 300;
@@ -309,7 +310,7 @@ function CandidateCard({ c, blocks, templates, onFlag, onCopied }: {
   const [source, setSource] = useState(BANK);
   const [choice, setChoice] = useState<Choice>(() => ({
     kind: defaultMessageKind(c.category, c.nextContactTypeOf),
-    hook: detectHook(c.reasons[0], c.pastProcessDate),
+    hook: detectHook(c),
     seniority: detected.seniority.value,
     discipline: detected.discipline.value
   }));
@@ -475,7 +476,7 @@ function BlocksEditor({ blocks, setBlocks, notify, error }: {
         <summary><h2 style={{ display: "inline" }}>Banque de messages</h2></summary>
         <p className="hint" style={{ margin: "6px 0 0" }}>
           Chaque message est assemblé à partir de ces blocs. Une modification s&apos;applique tout de suite à toutes les fiches.
-          Variables : <code>{"{{prenom}}"}</code> <code>{"{{titre}}"}</code> <code>{"{{entreprise}}"}</code> <code>{"{{anciennete}}"}</code> <code>{"{{annee_process}}"}</code> <code>{"{{argument_metier}}"}</code>.
+          Variables : <code>{"{{prenom}}"}</code> <code>{"{{titre}}"}</code> <code>{"{{entreprise}}"}</code> <code>{"{{anciennete}}"}</code> <code>{"{{argument_metier}}"}</code>.
         </p>
         {error && <p className="warn" style={{ marginTop: 10 }}>{error}</p>}
         {kinds.map(kind => (

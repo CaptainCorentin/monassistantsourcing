@@ -12,7 +12,7 @@ export type Block = { code: string; kind: BlockKind; label: string; body: string
 
 export type Seniority = "PO1" | "PO2" | "PO3" | "QA";
 export type Discipline = "DIGITAL" | "DATA" | "IA" | "BUILD" | "QA";
-export type Hook = "A1" | "A2" | "A3" | "A4";
+export type Hook = "A1" | "A2" | "A3" | "A4" | "A5";
 export type MessageKind = "premier" | "invitation" | "R1" | "R2";
 
 export const SENIORITIES: { key: Seniority; label: string }[] = [
@@ -32,7 +32,8 @@ export const HOOKS: { key: Hook; label: string }[] = [
   { key: "A1", label: "A1 · Jamais contacté" },
   { key: "A2", label: "A2 · Contacté par un collègue (+60 j)" },
   { key: "A3", label: "A3 · Sans réponse depuis 6 mois" },
-  { key: "A4", label: "A4 · Ex-candidat" }
+  { key: "A4", label: "A4 · Déjà échangé avec toi" },
+  { key: "A5", label: "A5 · Déjà échangé avec un collègue" }
 ];
 export const MESSAGE_KINDS: { key: MessageKind; label: string }[] = [
   { key: "premier", label: "1er message" },
@@ -57,7 +58,8 @@ export const DEFAULT_BLOCKS: Block[] = [
   { code: "A1-REPLI", kind: "accroche", label: "A1 · Si entreprise ou ancienneté inconnue", body: "Ton parcours de {{titre}} a retenu mon attention." },
   { code: "A2", kind: "accroche", label: "A2 · Contacté par un collègue (+60 j)", body: "Beaucoup de choses ont bougé chez WeFiiT ces derniers mois, et ton profil colle pile à ce qu'on construit aujourd'hui." },
   { code: "A3", kind: "accroche", label: "A3 · Sans réponse depuis 6 mois", body: "On dit souvent que la vie est une question de feeling et de timing… mon dernier message est sûrement arrivé au mauvais moment ! 😊" },
-  { code: "A4", kind: "accroche", label: "A4 · Ex-candidat", body: "On s'était croisés en {{annee_process}} lors de ton process chez WeFiiT. Beaucoup de choses ont bougé depuis, de ton côté comme du nôtre." },
+  { code: "A4", kind: "accroche", label: "A4 · Déjà échangé avec toi (LN+, Vivier +++)", body: "J'ai gardé un bon souvenir de nos derniers échanges, et beaucoup de choses ont bougé chez WeFiiT depuis." },
+  { code: "A5", kind: "accroche", label: "A5 · Déjà échangé avec un collègue (LN+, Vivier +++)", body: "Tu avais marqué positivement WeFiiT lors de tes derniers échanges avec nous, et beaucoup de choses ont bougé depuis." },
   { code: "POS-PO12", kind: "positionnement", label: "PO1 / PO2", body: "Chez WeFiiT, on ne fait que du Product Management, et on cherche les meilleurs PM et PO de Paris pour devenir la référence du métier en France." },
   { code: "POS-PO3", kind: "positionnement", label: "PO3", body: "Chez WeFiiT, on cherche les futurs leaders du Product Management digital, Data et IA : des profils qui font grandir nos clients autant que l'équipe." },
   { code: "POS-QA", kind: "positionnement", label: "QA", body: "Chez WeFiiT, on cherche les meilleurs QA de Paris : des stratèges de la qualité produit, impliqués dès la conception (shift left), pas de simples exécutants de tests." },
@@ -111,8 +113,11 @@ export function detectDiscipline(title: string): { value: Discipline; sure: bool
   return { value: "DIGITAL", sure: false };
 }
 
-export function detectHook(reason: string | undefined, pastProcessDate: string | null | undefined): Hook {
-  if (pastProcessDate) return "A4";
+// Déjà échangé (LN+, Vivier +++, ou un process dans Boond) : accroche volontairement vague,
+// selon l'auteur du dernier échange. Sans échange tracé, on ne présume pas que c'était moi.
+export function detectHook(c: { state: number; reasons: string[]; pastProcessDate?: string | null; pastProcessByMe?: boolean | null }): Hook {
+  if (c.pastProcessDate || c.state === 11 || c.state === 13) return c.pastProcessByMe ? "A4" : "A5";
+  const reason = c.reasons[0];
   if (reason === "contacte_par_autre_ancien") return "A2";
   if (reason === "nouvelle_campagne") return "A3";
   return "A1";

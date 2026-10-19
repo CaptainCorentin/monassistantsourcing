@@ -10,7 +10,7 @@ Validée le 13/10 et intégrée : textes dans Supabase (`message_blocks`, migrat
 
 | Axe | Règle | Correction |
 |---|---|---|
-| Historique | Motif de classement : `jamais_contacte` → A1, `contacte_par_autre_ancien` → A2, `nouvelle_campagne` → A3. Prioritaire : toute action de process ou de fin de process dans Boond, quel que soit son âge → A4 (l'année vient de cette action) | Menu |
+| Historique | Motif de classement : `jamais_contacte` → A1, `contacte_par_autre_ancien` → A2, `nouvelle_campagne` → A3. Prioritaire : LN+ ou Vivier +++, ou un process tracé dans Boond (pré-qualification, entretien, fin de process), quel que soit son âge → A4 si j'ai fait le dernier échange, A5 sinon (collègue, ou aucun échange tracé) | Menu |
 | Séniorité | Titre Boond : QA, Test, Qualité → QA ; Junior, Associate, Alternant → PO1 ; Senior, Lead, Head, Principal, Staff, Group, Director, VP → PO3 ; sinon PO2 | Menu |
 | Discipline | Titre Boond : QA, Test → D-QA ; Data → D-DATA ; IA, AI, ML, GenAI → D-IA ; Builder, No-code, Automation → D-BUILD ; sinon D-DIGITAL | Menu |
 
@@ -23,7 +23,8 @@ Titre ambigu : le bloc par défaut est appliqué et la fiche le signale. Entrepr
 | A1 | Jamais contacté | {{anciennete}} chez {{entreprise}}, c'est peut-être la fin d'un cycle… et le début d'un nouveau ? 😁 *(champs vides : « Ton parcours de {{titre}} a retenu mon attention. »)* |
 | A2 | Contacté par un collègue il y a plus de 60 j | Beaucoup de choses ont bougé chez WeFiiT ces derniers mois, et ton profil colle pile à ce qu'on construit aujourd'hui. |
 | A3 | Moi, sans réponse depuis plus de 6 mois | On dit souvent que la vie est une question de feeling et de timing… mon dernier message est sûrement arrivé au mauvais moment ! 😊 |
-| A4 | Ex-candidat, process il y a plus d'un an | On s'était croisés en {{annee_process}} lors de ton process chez WeFiiT. Beaucoup de choses ont bougé depuis, de ton côté comme du nôtre. |
+| A4 | LN+ / Vivier +++, dernier échange fait par moi | J'ai gardé un bon souvenir de nos derniers échanges, et beaucoup de choses ont bougé chez WeFiiT depuis. |
+| A5 | LN+ / Vivier +++, dernier échange fait par un collègue ou non tracé | Tu avais marqué positivement WeFiiT lors de tes derniers échanges avec nous, et beaucoup de choses ont bougé depuis. |
 
 ## Positionnement, selon la séniorité
 
