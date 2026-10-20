@@ -11,8 +11,10 @@ Backend de la webapp. Publié, webhook de production :
 | 2. Recherche Boond | Préparer la recherche, Boond · Rechercher les candidats, Lister les candidats à vérifier, Des candidats à vérifier ?, Répondre (aucun candidat) | 1 appel `/candidates` filtré (périmètre, `candidateStates[]`, mots-clés, tri), 300 fiches max. |
 | 3. Vérification et classement | Boond · Historique des actions, Classer selon les règles de contactabilité, Répondre à la webapp | 1 appel `/candidates/{id}/actions` par fiche (lots de 5), puis les règles de `rules/contactability.js`. |
 
-Entrée (JSON) : `{ keywords, states: [11, 13], scope: "mine" | "all", sort: "updateDate" | "creationDate", order: "asc" | "desc", maxChecks: 100 | 200 | 300 }`.
-Sortie : `{ searchTotal, checked, contactables, byCategory, excluded, params, candidates[] }`.
+Entrée (JSON) : `{ keywords, states: [11, 13], scope: "mine" | "all", sort, order, maxChecks: 100 | 200 | 300, titlePrefixes: ["PO2", "NONE"…], requirePhone, extraIds: ["12345"…] }`. `extraIds` = fiches déplacées vers la campagne : une 2e requête `keywords=CAND12345 CAND…`, sans filtre de ciblage.
+Sortie : `{ searchTotal, checked, contactables, byCategory, excluded, params, candidates[] }`, chaque candidat avec `phone`, `addedToCampaign` et `history` (6 dernières actions : type, date, auteur, texte nettoyé de 320 caractères).
+
+Le code des 3 nœuds Code est testé hors N8N par `rules/n8n.test.mjs`.
 
 Lecture seule : aucun nœud n'écrit dans Boond. Exécutions réussies non conservées (`saveDataSuccessExecution: none`), délai max 150 s.
 

@@ -1,9 +1,9 @@
 # Vivier Boond
 
-Webapp personnelle de sourcing de Corentin Barczyk (WeFiiT). Elle lit le vivier Boond (LN+, Vivier +++ par défaut), vérifie l'historique de chaque fiche et propose les candidats contactables, avec des messages types à copier sur LinkedIn. Elle n'écrit jamais dans Boond : le contact se fait depuis LinkedIn avec l'extension « Sourcing LinkedIn — WeFiiT ».
+Webapp personnelle de sourcing de Corentin Barczyk (WeFiiT), organisée en campagnes. Une campagne = un ciblage Boond (états, préfixe du titre, mots-clés, téléphone) + un canal (LinkedIn ou cold call) + un message unique. Une fois lancée, les candidats contactables défilent un par un, avec leur historique Boond et le message pré-rempli : « Envoyer sur LinkedIn » copie le message et ouvre le profil en 1 clic, « Passer » reporte, sort du vivier ou déplace vers une autre campagne. Elle n'écrit jamais dans Boond : le contact se fait depuis LinkedIn avec l'extension « Sourcing LinkedIn — WeFiiT ».
 
 ```
-Navigateur ─► Next.js sur Vercel ─┬─► Supabase (mot de passe, sessions, banque de messages, messages types, masqués / reportés)
+Navigateur ─► Next.js sur Vercel ─┬─► Supabase (mot de passe, sessions, campagnes, banque de messages, ids Boond reportés / sortis / déplacés)
                                   └─► N8N « VIVIER BOOND - Webapp sourcing » ─► API Boond (lecture)
 ```
 
@@ -15,7 +15,7 @@ Aucune variable Vercel n'est nécessaire. Ouvrir https://monassistantsourcing.ve
 
 ```
 npm install
-npm test           # règles de contactabilité et banque de messages
+npm test           # règles, banque de messages, nœuds Code N8N (réponses Boond simulées)
 npm run typecheck
 npm run build
 ```

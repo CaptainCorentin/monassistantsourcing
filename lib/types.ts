@@ -2,6 +2,9 @@ export type Category = "a_contacter" | "a_relancer" | "vivier";
 
 export type LastContact = { typeOf: number; date: string; byMe: boolean };
 
+// Action Boond affichée sur la fiche (texte nettoyé et tronqué par N8N).
+export type HistoryItem = { typeOf: number; date: string | null; author: string | null; byMe: boolean; text: string };
+
 export type Candidate = {
   id: string;
   firstName: string;
@@ -18,6 +21,9 @@ export type Candidate = {
   updateDate?: string | null;
   pastProcessDate?: string | null;
   pastProcessByMe?: boolean | null;
+  phone?: string | null;
+  addedToCampaign?: boolean;
+  history?: HistoryItem[];
 };
 
 export type SearchParams = {
@@ -27,6 +33,8 @@ export type SearchParams = {
   order: "asc" | "desc";
   scope: "mine" | "all";
   maxChecks: 100 | 200 | 300;
+  titlePrefixes: string[];
+  requirePhone: boolean;
 };
 
 export type SearchResult = {

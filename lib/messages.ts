@@ -84,7 +84,7 @@ export const DEFAULT_BLOCKS: Block[] = [
   { code: "INV", kind: "invitation", label: "Note d'invitation (300 caractères)", body: "Bonjour {{prenom}}, je suis Corentin, recruteur chez WeFiiT, cabinet 100 % Product Management. Chez nous : {{argument_metier}}. Pas de practice, chacun choisit ses missions. Ouvert à en discuter ?" }
 ];
 
-export const VARIABLES = ["prenom", "nom", "titre", "ville", "entreprise", "anciennete", "annee_process", "argument_metier"];
+export const VARIABLES = ["prenom", "nom", "titre", "ville", "entreprise", "anciennete", "annee_process", "argument_metier", "accroche"];
 
 // Détection depuis le titre Boond. sure = false : rien de reconnu, valeur par défaut.
 // Bornes de mot faites à la main : \b ne reconnaît pas les lettres accentuées.
@@ -164,4 +164,46 @@ export function assemble(choice: Choice, blocks: Block[], vars: Record<string, s
     text = get(choice.kind);
   }
   return fillVariables(text, allVars);
+}
+
+// ---------------------------------------------------------------------------
+// Campagnes : un message unique par campagne, avec {{accroche}} choisie fiche par fiche.
+
+const blockBody = (blocks: Block[], code: string) =>
+  blocks.find(b => b.code === code)?.body ?? DEFAULT_BLOCKS.find(b => b.code === code)?.body ?? "";
+
+// Modèle de 1er message d'une campagne, pré-rempli depuis la banque. L'accroche reste une variable.
+export function campaignTemplate(seniority: Seniority, discipline: Discipline, blocks: Block[]): string {
+  const pos = seniority === "PO3" ? "POS-PO3" : seniority === "QA" ? "POS-QA" : "POS-PO12";
+  return [
+    "Bonjour {{prenom}},",
+    "{{accroche}}",
+    [blockBody(blocks, pos), blockBody(blocks, `D-${discipline}`), blockBody(blocks, "OUV")].filter(Boolean).join(" "),
+    blockBody(blocks, `DRV-${seniority}`),
+    blockBody(blocks, "CTA")
+  ].filter(Boolean).join("\n\n");
+}
+
+type CampaignLike = { message: string; seniority: Seniority; discipline: Discipline };
+type CandidateLike = {
+  firstName: string; lastName: string; title: string; town: string; state: number; reasons: string[];
+  category: string; nextContactTypeOf: number | null; pastProcessDate?: string | null; pastProcessByMe?: boolean | null;
+};
+
+// Message proposé pour un candidat dans une campagne : relance de la banque (R1 / R2) si le candidat
+// est à relancer, sinon le message de la campagne (ou le modèle de la banque s'il est vide).
+export function campaignMessage(campaign: CampaignLike, c: CandidateLike, blocks: Block[]) {
+  const vars: Record<string, string> = {
+    prenom: c.firstName, nom: c.lastName, titre: c.title, ville: c.town,
+    argument_metier: blockBody(blocks, `ARG-${campaign.discipline}`)
+  };
+  if (c.category === "a_relancer") {
+    const kind = c.nextContactTypeOf === 16 ? "R2" : "R1";
+    return { kind, ...fillVariables(blockBody(blocks, kind), vars) };
+  }
+  const hook = detectHook(c);
+  // Entreprise et ancienneté ne sont pas dans Boond : A1 passe à son repli.
+  vars.accroche = fillVariables(blockBody(blocks, hook === "A1" ? "A1-REPLI" : hook), vars).text;
+  const template = campaign.message.trim() ? campaign.message : campaignTemplate(campaign.seniority, campaign.discipline, blocks);
+  return { kind: "premier", hook, ...fillVariables(template, vars) };
 }

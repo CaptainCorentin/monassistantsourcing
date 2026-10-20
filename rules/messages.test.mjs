@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { assemble, detectDiscipline, detectHook, detectSeniority, defaultMessageKind, DEFAULT_BLOCKS } from "../lib/messages.ts";
+import { assemble, campaignMessage, campaignTemplate, detectDiscipline, detectHook, detectSeniority, defaultMessageKind, DEFAULT_BLOCKS } from "../lib/messages.ts";
 
 const titles = [
   ["Product Owner", "PO2", false, "DIGITAL", false],
@@ -78,4 +78,29 @@ test("relance 2 et invitation : argument de la discipline, invitation sous 300 c
 test("un bloc modifié dans Supabase remplace le texte par défaut", () => {
   const blocks = DEFAULT_BLOCKS.map(b => (b.code === "R1" ? { ...b, body: "Coucou {{prenom}}" } : b));
   assert.equal(assemble({ kind: "R1", hook: "A1", seniority: "PO2", discipline: "DIGITAL" }, blocks, vars).text, "Coucou Léa");
+});
+
+const lea = { firstName: "Léa", lastName: "Martin", title: "PO2 - Product Owner", town: "Paris", state: 11, reasons: ["jamais_contacte"], category: "a_contacter", nextContactTypeOf: 131, pastProcessDate: null, pastProcessByMe: null };
+
+test("campagne : modèle de la banque avec accroche variable", () => {
+  const t = campaignTemplate("PO2", "DATA", DEFAULT_BLOCKS);
+  assert.match(t, /^Bonjour \{\{prenom\}\},\n\n\{\{accroche\}\}\n\nChez WeFiiT/);
+  assert.match(t, /Data as a Product/);
+});
+
+test("campagne : accroche choisie par fiche, message vide = modèle de la banque", () => {
+  const r = campaignMessage({ message: "", seniority: "PO2", discipline: "DATA" }, lea, DEFAULT_BLOCKS);
+  assert.equal(r.kind, "premier");
+  assert.equal(r.hook, "A5");
+  assert.match(r.text, /^Bonjour Léa,\n\nTu avais marqué positivement WeFiiT/);
+  assert.deepEqual(r.missing, []);
+  const own = campaignMessage({ message: "Hello {{prenom}} ! {{accroche}}", seniority: "PO2", discipline: "DATA" }, { ...lea, state: 0 }, DEFAULT_BLOCKS);
+  assert.equal(own.text, "Hello Léa ! Ton parcours de PO2 - Product Owner a retenu mon attention.");
+});
+
+test("campagne : un candidat à relancer reçoit R1 ou R2", () => {
+  const r1 = campaignMessage({ message: "x", seniority: "PO2", discipline: "IA" }, { ...lea, category: "a_relancer", nextContactTypeOf: 15 }, DEFAULT_BLOCKS);
+  assert.equal(r1.kind, "R1");
+  const r2 = campaignMessage({ message: "x", seniority: "PO2", discipline: "IA" }, { ...lea, category: "a_relancer", nextContactTypeOf: 16 }, DEFAULT_BLOCKS);
+  assert.match(r2.text, /🎯 des produits IA non déterministes/);
 });

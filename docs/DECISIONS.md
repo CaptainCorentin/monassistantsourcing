@@ -18,6 +18,15 @@ Navigateur ── mot de passe (cookie httpOnly signé) ──► Next.js sur Ve
 - Une recherche = 1 exécution N8N (liste filtrée + vérification de chaque candidat par id, 100 maximum).
 - "À relancer" est aligné sur l'extension : relance proposée seulement si le dernier contact est le mien et date de moins de 30 j.
 
+## Campagnes (20/10)
+
+Retour d'usage : trop de temps perdu à ouvrir les fiches. L'outil part désormais d'un ciblage et d'un message, plus d'une liste.
+
+- **Écran 1, campagnes** : ciblage Boond (états, préfixe du titre PO1 à QA2 ou sans préfixe, mots-clés, périmètre, téléphone requis), canal (message LinkedIn ou cold call), cible (à contacter, à relancer, les deux), message unique avec `{{accroche}}` choisie fiche par fiche. Message vide = modèle de la banque (séniorité + discipline de la campagne). Les candidats à relancer reçoivent R1 ou R2.
+- **Écran 2, session** : un candidat à la fois, historique Boond (6 dernières actions, auteur, texte tronqué) sans ouvrir le CRM, message modifiable. « Envoyer sur LinkedIn » : copie + ouverture du profil + suivant (reporté 7 j, le temps que l'extension crée l'action). Cold call : lien `tel:` + « Appel passé ». Raccourcis : Ctrl + Entrée, flèche droite.
+- **Passer** : juste passer, plus tard (30 j), sortir du vivier à relancer (masqué, dans la webapp seulement : Boond n'est pas modifié), ou vers une autre campagne (`campaign_members`, id Boond seulement ; la fiche arrive en tête de cette campagne, lue en 1 requête Boond `keywords=CAND…`).
+- Toujours 1 exécution N8N par lancement de campagne.
+
 ## Règles de classement
 
 Filtres préalables : état Boond ∈ {0, 5, 11, 13}, `mainManager = 15675`, titre ne commençant pas par PAD ou TR (« PAD1 - … », « TR - … »), écartés avant la lecture de l'historique.
