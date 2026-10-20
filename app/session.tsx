@@ -14,7 +14,9 @@ const INVITATION_LIMIT = 300;
 // Candidats de la campagne, dans l'ordre de passage : fiches ajoutées à la main d'abord.
 function queueOf(result: SearchResult, campaign: Campaign, isFlagged: (id: string) => boolean) {
   const wanted = campaign.target === "tous" ? ["a_contacter", "a_relancer"] : [campaign.target];
-  const kept = result.candidates.filter(c => wanted.includes(c.category) && !isFlagged(c.id));
+  const segments = campaign.filters.segments;
+  const inSegment = (c: Candidate) => !segments.length || c.addedToCampaign || segments.includes(c.reasons[0]);
+  const kept = result.candidates.filter(c => wanted.includes(c.category) && !isFlagged(c.id) && inSegment(c));
   return [...kept.filter(c => c.addedToCampaign), ...kept.filter(c => !c.addedToCampaign)];
 }
 
@@ -82,6 +84,9 @@ export default function Session({ campaign, campaigns, blocks, isFlagged, record
   const excluded = Object.entries(result.excluded).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
   const flaggedCount = result.candidates.length - result.candidates.filter(c => !isFlagged(c.id)).length;
   if (flaggedCount) excluded.push(["deja_traite", flaggedCount]);
+  const wanted = campaign.target === "tous" ? ["a_contacter", "a_relancer"] : [campaign.target];
+  const outOfSegment = result.candidates.filter(c => !isFlagged(c.id) && wanted.includes(c.category)).length - queue.length;
+  if (outOfSegment > 0) excluded.push(["hors_segment", outOfSegment]);
   const header = (
     <div className="session-head">
       <div>

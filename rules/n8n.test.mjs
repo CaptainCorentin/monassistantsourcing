@@ -24,6 +24,9 @@ test("préparer : filtres de campagne et requête des fiches ajoutées", () => {
   assert.equal(out[1].json.source, "extra");
   assert.match(out[1].json.url, /keywords=CAND12%20CAND34$/);
   assert.equal(run(src("prepare.js"), { $json: { body: {} } }).length, 1);
+  const ev = run(src("prepare.js"), { $json: { body: { evaluations: ["A/B", "A", "Z/Z"] } } })[0].json;
+  assert.deepEqual(ev.params.evaluations, ["A/B", "A"]);
+  assert.match(ev.url, /evaluations%5B%5D=A%2FB&evaluations%5B%5D=A$/);
 });
 
 test("lister : PAD / TR, préfixe ciblé, téléphone requis, fiches ajoutées sans filtre", () => {

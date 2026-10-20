@@ -4,9 +4,9 @@ import { useState } from "react";
 import type { Campaign } from "@/lib/campaigns";
 import { DEFAULT_FILTERS } from "@/lib/campaigns";
 import { DISCIPLINES, SENIORITIES, campaignTemplate, type Block, type Discipline, type Seniority } from "@/lib/messages";
-import { PREFIX_LABELS, STATES, api } from "./shared";
+import { EVALUATION_GROUPS, PREFIX_LABELS, SEGMENT_LABELS, STATES, api } from "./shared";
 
-type Draft = Omit<Campaign, "id">;
+type Draft = Omit<Campaign, "id" | "preset">;
 
 const EMPTY: Draft = {
   name: "", channel: "linkedin", target: "a_contacter", filters: DEFAULT_FILTERS,
@@ -22,10 +22,23 @@ function describe(c: Draft) {
     f.titlePrefixes.length ? f.titlePrefixes.map(p => PREFIX_LABELS[p]).join(", ") : "tous les titres",
     f.keywords ? `« ${f.keywords} »` : "",
     f.scope === "all" ? "tout le vivier WeFiiT" : "mes fiches",
+    f.evaluations.length ? `évaluation ${f.evaluations.join(", ")}` : "",
+    f.segments.length ? f.segments.map(x => SEGMENT_LABELS[x]).join(", ") : "",
     f.requirePhone ? "avec téléphone" : "",
     TARGETS[c.target]
   ].filter(Boolean).join(" · ");
 }
+
+// Description des tuiles prêtes à lancer.
+const PRESET_INFO: Record<string, string> = {
+  pepites: "Vus en entretien avec un A en soft skills, quelle que soit la note Product : l'occasion de voir si la partie Product a progressé.",
+  jamais: "Tes LN+ et Vivier +++ jamais contactés.",
+  relance_campagne: "Ton dernier message date de plus de 6 mois, sans suite : nouvelle campagne, nouvelle accroche.",
+  repris: "Contactés par un collègue il y a plus de 60 jours : tu reprends le fil.",
+  relances: "Relance 1 ou 2 due, entre 7 et 30 jours après ton dernier message.",
+  pepites_wefiit: "Option : mêmes pépites (soft skills A) sur tout le vivier WeFiiT, y compris les fiches de tes collègues. À utiliser avec tact."
+};
+const QUICK_PREFIXES: Record<string, string[]> = { PO1: ["PO1"], PO2: ["PO2"], PO3: ["PO3"], QA: ["QA0", "QA1", "QA2"] };
 
 // Séniorité du message déduite des préfixes ciblés, quand ils sont homogènes.
 function seniorityFromPrefixes(prefixes: string[], current: Seniority): Seniority {
@@ -33,6 +46,48 @@ function seniorityFromPrefixes(prefixes: string[], current: Seniority): Seniorit
   if (set.size !== 1) return current;
   const only = [...set][0];
   return only === "PO1" || only === "PO2" || only === "PO3" || only === "QA" ? only : current;
+}
+
+// Tuile : séniorité en un clic (préfixes du titre) et canal, puis lancement.
+function PresetTile({ c, onLaunch, onEdit }: { c: Campaign; onLaunch: (c: Campaign) => void; onEdit: () => void }) {
+  const [quick, setQuick] = useState<string[]>([]);
+  const [channel, setChannel] = useState(c.channel);
+  function launch() {
+    const prefixes = quick.flatMap(q => QUICK_PREFIXES[q]);
+    onLaunch({
+      ...c,
+      channel,
+      seniority: quick.length === 1 ? (quick[0] as Campaign["seniority"]) : c.seniority,
+      discipline: quick.length === 1 && quick[0] === "QA" ? "QA" : c.discipline,
+      filters: { ...c.filters, titlePrefixes: prefixes.length ? prefixes : c.filters.titlePrefixes, requirePhone: channel === "phone" || c.filters.requirePhone }
+    });
+  }
+  return (
+    <article className={`campaign preset${c.preset === "pepites_wefiit" ? " optional" : ""}`}>
+      <div>
+        <h3>{c.name}</h3>
+        <p className="hint">{PRESET_INFO[c.preset ?? ""] ?? describe(c)}</p>
+      </div>
+      <div className="chips" role="group" aria-label={`Séniorité pour ${c.name}`}>
+        {Object.keys(QUICK_PREFIXES).map(q => (
+          <label className="chip-toggle" key={q}>
+            <input type="checkbox" checked={quick.includes(q)} onChange={e => setQuick(v => (e.target.checked ? [...v, q] : v.filter(x => x !== q)))} />
+            <span>{q}</span>
+          </label>
+        ))}
+      </div>
+      <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+        <div className="seg" role="group" aria-label={`Canal pour ${c.name}`}>
+          <button type="button" aria-pressed={channel === "linkedin"} onClick={() => setChannel("linkedin")}>LinkedIn</button>
+          <button type="button" aria-pressed={channel === "phone"} onClick={() => setChannel("phone")}>Cold call</button>
+        </div>
+        <div className="row">
+          <button className="btn small" type="button" onClick={onEdit}>Message</button>
+          <button className="btn primary" type="button" onClick={launch}>Lancer</button>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 export default function CampaignsScreen({ campaigns, setCampaigns, blocks, onLaunch, notify, error }: {
@@ -50,7 +105,7 @@ export default function CampaignsScreen({ campaigns, setCampaigns, blocks, onLau
 
   function edit(c: Campaign | null) {
     setEditing(c);
-    setDraft(c ? { ...c } : { ...EMPTY, filters: { ...DEFAULT_FILTERS } });
+    setDraft(c ? { name: c.name, channel: c.channel, target: c.target, filters: c.filters, seniority: c.seniority, discipline: c.discipline, message: c.message } : { ...EMPTY, filters: { ...DEFAULT_FILTERS } });
     setConfirmArchive(false);
   }
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft(d => (d ? { ...d, [k]: v } : d));
@@ -153,6 +208,32 @@ export default function CampaignsScreen({ campaigns, setCampaigns, blocks, onLau
               </div>
               <span className="hint">Aucun coché : tous les titres. Les profils PAD et TR sont toujours écartés.</span>
             </div>
+            <div className="field">
+              <span className="label">Évaluation en entretien (soft skills)</span>
+              <div className="chips">
+                {Object.entries(EVALUATION_GROUPS).map(([label, values]) => (
+                  <label className="chip-toggle" key={label}>
+                    <input type="checkbox" checked={values.every(v => f.evaluations.includes(v))}
+                      onChange={e => setFilter("evaluations", e.target.checked ? [...new Set([...f.evaluations, ...values])] : f.evaluations.filter(v => !values.includes(v)))} />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+              <span className="hint">« Soft A » = A/A, A/B, A/C, A/D : quelle que soit la note Product. Aucun coché : évalués ou non.</span>
+            </div>
+            <div className="field">
+              <span className="label">Historique de contact</span>
+              <div className="chips">
+                {Object.entries(SEGMENT_LABELS).map(([k, label]) => (
+                  <label className="chip-toggle" key={k}>
+                    <input type="checkbox" checked={f.segments.includes(k)}
+                      onChange={e => setFilter("segments", e.target.checked ? [...f.segments, k] : f.segments.filter(x => x !== k))} />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+              <span className="hint">Calculé depuis l&apos;historique Boond à chaque lancement. Aucun coché : tous les contactables.</span>
+            </div>
             <div className="row">
               <div className="field grow">
                 <label htmlFor="c-keywords">Mots-clés Boond</label>
@@ -223,7 +304,7 @@ export default function CampaignsScreen({ campaigns, setCampaigns, blocks, onLau
           </fieldset>
 
           <div className="row" style={{ justifyContent: "space-between" }}>
-            {editing ? <button className="btn small" type="button" onClick={archive}>{confirmArchive ? "Confirmer l'archivage" : "Archiver"}</button> : <span />}
+            {editing && !editing.preset ? <button className="btn small" type="button" onClick={archive}>{confirmArchive ? "Confirmer l'archivage" : "Archiver"}</button> : <span />}
             <button className="btn primary" type="submit" disabled={saving || !f.states.length}>{saving ? "Enregistrement…" : "Enregistrer"}</button>
           </div>
         </form>
@@ -231,16 +312,26 @@ export default function CampaignsScreen({ campaigns, setCampaigns, blocks, onLau
     );
   }
 
+  const presets = campaigns.filter(c => c.preset);
+  const own = campaigns.filter(c => !c.preset);
   return (
     <section className="campaigns">
-      <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-        <h2>Campagnes</h2>
-        <button className="btn primary" type="button" onClick={() => edit(null)}>Nouvelle campagne</button>
-      </div>
       {error && <p className="warn">{error}</p>}
-      {campaigns.length ? (
+      {presets.length > 0 && (
+        <>
+          <h2>Prêtes à lancer</h2>
+          <div className="campaign-grid">
+            {presets.map(c => <PresetTile key={c.id} c={c} onLaunch={onLaunch} onEdit={() => edit(c)} />)}
+          </div>
+        </>
+      )}
+      <div className="row" style={{ justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+        <h2>Mes campagnes</h2>
+        <button className="btn" type="button" onClick={() => edit(null)}>Nouvelle campagne</button>
+      </div>
+      {own.length ? (
         <div className="campaign-grid">
-          {campaigns.map(c => (
+          {own.map(c => (
             <article className="campaign" key={c.id}>
               <div>
                 <span className={`pill ${c.channel === "phone" ? "a_relancer" : "a_contacter"}`}>{c.channel === "phone" ? "Cold call" : "LinkedIn"}</span>
@@ -255,12 +346,7 @@ export default function CampaignsScreen({ campaigns, setCampaigns, blocks, onLau
           ))}
         </div>
       ) : (
-        <div className="panel empty">
-          <h3>Aucune campagne</h3>
-          <p style={{ margin: "8px auto 0", maxWidth: "52ch" }}>
-            Une campagne = un ciblage Boond précis et un message unique. Crée la première, puis lance-la : les candidats défilent un par un.
-          </p>
-        </div>
+        <p className="hint" style={{ margin: 0 }}>Pour un ciblage sur mesure (mots-clés, états, évaluation, historique), crée ta propre campagne.</p>
       )}
     </section>
   );

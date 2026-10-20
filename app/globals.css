@@ -160,3 +160,10 @@ label.check { display: flex; gap: 8px; align-items: center; text-transform: none
 .pass-menu { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; border-top: 1px dashed var(--line); padding-top: 10px; }
 .pass-menu select { width: auto; }
 .counter.soft { color: var(--muted); }
+
+/* Tuiles prêtes à lancer : séniorité et canal en un clic. */
+.campaign.preset { border-top: 3px solid var(--accent); }
+.campaign.preset.optional { border-top-color: var(--line); opacity: 0.92; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: none; background: var(--surface); padding: 5px 10px; font-size: 0.85rem; font-weight: 500; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }

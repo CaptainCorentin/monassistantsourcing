@@ -23,6 +23,11 @@ const titlePrefixes = Array.isArray(body.titlePrefixes)
   ? [...new Set(body.titlePrefixes.map(String))].filter(p => /^(PO[0-3]|QA[0-3]|NONE)$/.test(p))
   : [];
 const requirePhone = body.requirePhone === true;
+// Évaluation globale (soft / hard skills), valeurs du dictionnaire Boond : filtrée par Boond.
+const EVALUATIONS = ['A', 'B', 'C', 'D', 'A/A', 'A/B', 'A/C', 'A/D', 'B/A', 'B/B', 'B/C', 'B/D', 'C/A', 'C/B', 'C/C', 'C/D'];
+const evaluations = Array.isArray(body.evaluations)
+  ? [...new Set(body.evaluations.map(String))].filter(e => EVALUATIONS.includes(e))
+  : [];
 const extraIds = Array.isArray(body.extraIds)
   ? [...new Set(body.extraIds.map(String))].filter(id => /^\d{1,9}$/.test(id)).slice(0, 100)
   : [];
@@ -36,10 +41,11 @@ const query = encode([
   ['order', order],
   ...(keywords ? [['keywords', keywords]] : []),
   ...(scope === 'mine' ? [['perimeterManagers[]', ME]] : []),
-  ...states.map(s => ['candidateStates[]', s])
+  ...states.map(s => ['candidateStates[]', s]),
+  ...evaluations.map(e => ['evaluations[]', e])
 ]);
 
-const params = { keywords, states, scope, sort, order, maxChecks, titlePrefixes, requirePhone, extraIds };
+const params = { keywords, states, scope, sort, order, maxChecks, titlePrefixes, requirePhone, evaluations, extraIds };
 const items = [{ json: { params, source: 'search', url: B + query } }];
 // Boond cherche « CAND123 CAND456 » en OU : une seule requête pour toutes les fiches ajoutées.
 if (extraIds.length) {

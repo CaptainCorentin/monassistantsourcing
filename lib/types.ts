@@ -35,6 +35,10 @@ export type SearchParams = {
   maxChecks: 100 | 200 | 300;
   titlePrefixes: string[];
   requirePhone: boolean;
+  // Évaluation globale Boond (« soft / hard »), filtrée par Boond.
+  evaluations: string[];
+  // Historique de contact calculé par N8N (motif de classement), filtré dans la session.
+  segments: string[];
 };
 
 export type SearchResult = {

@@ -95,6 +95,21 @@ Dictionnaire Boond, états candidat : 0 A traiter !, 5 P+, 11 LN+ (vivier), 13 V
 
 Dictionnaire Boond, actions candidat utiles : 131 1er Contact, 15 2ème Contact, 16 3ème Contact et +, 18 Retour Négatif / Pas Intéressé, 1 Relance à faire / Rappel, 19 Fin de process à l'initiative du candidat, 133 Fin de process à NOTRE initiative, 12 Pré-qualification, 40 Entretien 1, 45 Entretien 2, 130 Entretien 3, 14 Entretien Entre Pairs, 134 Entretien en SUPPORT, 43 ED, 7 EM, 42 Signature, 132 Reco Talent A CONTACTER.
 
+## Campagnes prêtes à lancer (20/10)
+
+Tuiles en tête d'écran, chacune avec séniorité en un clic (PO1, PO2, PO3, QA = préfixe du titre) et canal (LinkedIn ou cold call) :
+
+| Tuile | Ciblage |
+|---|---|
+| Pépites déjà validées | Évaluation soft skills A (A, A/A, A/B, A/C, A/D), peu importe la note Product : on voit si le Product a progressé. États 0, 5, 11, 13, mes fiches |
+| Jamais contactés | LN+ et Vivier +++, segment « jamais contacté » |
+| Relance de campagne | Segment « mon dernier contact > 6 mois » |
+| Repris d'un collègue | Segment « collègue > 60 j » |
+| Relances en cours | Candidats à relancer (R1 / R2) |
+| Pépites du vivier WeFiiT (option) | Soft skills A sur tout le vivier WeFiiT |
+
+Disponibilité et provenance écartées (pas utiles). L'évaluation est filtrée par Boond (`evaluations[]`) ; le segment de contact est filtré dans la session à partir du motif calculé par N8N. Les tuiles sont des campagnes en base (`campaigns.preset`) : leur message se modifie comme les autres.
+
 ## Filtres Boond utilisables pour des campagnes (discovery du 20/10, lecture seule)
 
 Base : mes fiches LN+ et Vivier +++ = 216. Tout le vivier WeFiiT LN+ et Vivier +++ = 2 096. Mes « A traiter ! » = 461.

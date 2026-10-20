@@ -12,10 +12,13 @@ export type Campaign = {
   seniority: "PO1" | "PO2" | "PO3" | "QA";
   discipline: "DIGITAL" | "DATA" | "IA" | "BUILD" | "QA";
   message: string;
+  // Campagne prête à lancer (tuile) : clé fixe, null pour une campagne créée à la main.
+  preset: string | null;
 };
 
 export const DEFAULT_FILTERS: SearchParams = {
-  keywords: "", states: [11, 13], sort: "updateDate", order: "desc", scope: "mine", maxChecks: 300, titlePrefixes: [], requirePhone: false
+  keywords: "", states: [11, 13], sort: "updateDate", order: "desc", scope: "mine", maxChecks: 300, titlePrefixes: [], requirePhone: false,
+  evaluations: [], segments: []
 };
 
 const SENIORITIES = ["PO1", "PO2", "PO3", "QA"] as const;
@@ -34,12 +37,13 @@ export function toCampaign(r: Record<string, unknown>): Campaign {
     filters: parseSearchParams(r.filters) ?? DEFAULT_FILTERS,
     seniority: SENIORITIES.find(s => s === r.seniority) ?? "PO2",
     discipline: DISCIPLINES.find(d => d === r.discipline) ?? "DIGITAL",
-    message: String(r.message ?? "")
+    message: String(r.message ?? ""),
+    preset: typeof r.preset === "string" ? r.preset : null
   };
 }
 
 // Valide une campagne reçue du navigateur. Les mêmes bornes sont imposées par la base.
-export function parseCampaignInput(input: unknown): Omit<Campaign, "id"> | null {
+export function parseCampaignInput(input: unknown): Omit<Campaign, "id" | "preset"> | null {
   if (!input || typeof input !== "object") return null;
   const o = input as Record<string, unknown>;
   const name = typeof o.name === "string" ? o.name.trim() : "";
@@ -53,7 +57,7 @@ export function parseCampaignInput(input: unknown): Omit<Campaign, "id"> | null 
   return { name, channel, target, filters, seniority, discipline, message };
 }
 
-export const saveArgs = (token: string, id: string | null, c: Omit<Campaign, "id">) => ({
+export const saveArgs = (token: string, id: string | null, c: Omit<Campaign, "id" | "preset">) => ({
   p_token: token, p_id: id, p_name: c.name, p_channel: c.channel, p_target: c.target, p_filters: c.filters,
   p_seniority: c.seniority, p_discipline: c.discipline, p_message: c.message
 });

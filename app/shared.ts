@@ -27,11 +27,27 @@ export const REASON_LABELS: Record<string, string> = {
   hors_cible: "Hors ciblage (préfixe du titre)",
   sans_telephone: "Sans téléphone dans Boond",
   erreur_boond: "Historique illisible dans Boond",
-  deja_traite: "Déjà traités, reportés ou sortis par toi"
+  deja_traite: "Déjà traités, reportés ou sortis par toi",
+  hors_segment: "Contactables, mais hors du segment de la campagne"
 };
 
 export const PREFIX_LABELS: Record<string, string> = {
   PO1: "PO1", PO2: "PO2", PO3: "PO3", QA0: "QA0", QA1: "QA1", QA2: "QA2", NONE: "Sans préfixe"
+};
+
+// Historique de contact (motif de classement N8N), utilisable comme segment de campagne.
+export const SEGMENT_LABELS: Record<string, string> = {
+  jamais_contacte: "Jamais contacté",
+  nouvelle_campagne: "Mon contact > 6 mois",
+  contacte_par_autre_ancien: "Collègue > 60 j",
+  relance_due: "Relance due"
+};
+
+// Évaluation globale Boond = soft skills / hard skills Product. On cible par note de soft skills.
+export const EVALUATION_GROUPS: Record<string, string[]> = {
+  "Soft A": ["A", "A/A", "A/B", "A/C", "A/D"],
+  "Soft B": ["B", "B/A", "B/B", "B/C", "B/D"],
+  "Soft C": ["C", "C/A", "C/B", "C/C", "C/D"]
 };
 
 export const DAY = 86400000;
