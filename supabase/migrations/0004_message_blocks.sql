@@ -60,7 +60,7 @@ insert into public.message_blocks (code, kind, label, body, sort_order) values
   ('DRV-PO2', 'driver', 'PO2', 'Tu pourras approfondir la discovery et la stratégie, être mentoré et accompagné, tout en co-construisant WeFiiT selon tes appétences.', 21),
   ('DRV-PO3', 'driver', 'PO3', 'Tu pourras accompagner tes pairs dans leur carrière, coacher nos clients et peser sur la stratégie interne de WeFiiT.', 22),
   ('DRV-QA', 'driver', 'QA', 'Tu pourras évoluer vers l''automatisation, la stratégie de test ou un rôle de PO, sur des missions 100 % QA et agiles.', 23),
-  ('CTA', 'cta', 'Appel à l''action', E'Si ça te parle, je serais ravi d''en échanger par téléphone : serais-tu disponible aujourd''hui ou demain ?\n\nPasse une excellente journée', 24),
+  ('CTA', 'cta', 'Appel à l''action', E'Si ça te parle, je serais ravi d''en échanger par téléphone : serais-tu disponible cette semaine ou la semaine prochaine ?\n\nPasse une excellente journée', 24),
   ('R1', 'relance', 'Relance 1 (2e contact)', 'Hello {{prenom}}, le suspense est insoutenable… as-tu bien reçu mon dernier message ? Promis, je ne me vexe pas si la réponse est non 😉', 25),
   ('R2', 'relance', 'Relance 2 (3e contact)', E'Hello {{prenom}}, as-tu pu lire mon précédent message ? En bref, chez WeFiiT :\n🎯 {{argument_metier}}\n🎯 tu choisis tes missions, sans practice imposée\n🎯 tu co-construis l''entreprise avec plus de 115 WeFiiTers\nOn se donne 15 min cette semaine ?', 26),
   ('INV', 'invitation', 'Note d''invitation (300 caractères)', 'Bonjour {{prenom}}, je suis Corentin, recruteur chez WeFiiT, cabinet 100 % Product Management. Chez nous : {{argument_metier}}. Pas de practice, chacun choisit ses missions. Ouvert à en discuter ?', 27)

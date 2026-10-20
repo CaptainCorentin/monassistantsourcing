@@ -55,7 +55,7 @@ Titre ambigu : le bloc par défaut est appliqué et la fiche le signale. Entrepr
 | PO3 | Tu pourras accompagner tes pairs dans leur carrière, coacher nos clients et peser sur la stratégie interne de WeFiiT. |
 | QA | Tu pourras évoluer vers l'automatisation, la stratégie de test ou un rôle de PO, sur des missions 100 % QA et agiles. |
 
-**Appel à l'action, commun :** Si ça te parle, je serais ravi d'en échanger par téléphone : serais-tu disponible aujourd'hui ou demain ? / Passe une excellente journée
+**Appel à l'action, commun :** Si ça te parle, je serais ravi d'en échanger par téléphone : serais-tu disponible cette semaine ou la semaine prochaine ? / Passe une excellente journée
 
 ## Relances
 
