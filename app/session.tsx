@@ -34,6 +34,8 @@ export default function Session({ campaign, campaigns, blocks, isFlagged, record
   const [error, setError] = useState("");
   const [idx, setIdx] = useState(0);
   const [stats, setStats] = useState<Stats>(NO_STATS);
+  // Actions Boond non créées : restent affichées jusqu'à ce que Corentin les ferme.
+  const [actionErrors, setActionErrors] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     setError("");
@@ -99,6 +101,13 @@ export default function Session({ campaign, campaigns, blocks, isFlagged, record
         <span><strong>{stats.passed + stats.later + stats.out + stats.moved}</strong> passés</span>
       </div>
       {result.notice && <p className="warn">{result.notice}</p>}
+      {actionErrors.length > 0 && (
+        <div className="warn" role="alert">
+          <strong>Actions non créées dans Boond :</strong>
+          <ul style={{ margin: "4px 0", paddingLeft: 18 }}>{actionErrors.map((m, i) => <li key={i}>{m}</li>)}</ul>
+          <button className="btn small" type="button" onClick={() => setActionErrors([])}>J&apos;ai compris</button>
+        </div>
+      )}
       {excluded.length > 0 && (
         <details className="excluded">
           <summary>{result.checked} fiches vérifiées, {excluded.reduce((a, [, n]) => a + n, 0)} écartées : voir pourquoi</summary>
@@ -131,12 +140,13 @@ export default function Session({ campaign, campaigns, blocks, isFlagged, record
     <>
       {header}
       <CandidateStep key={current.id} c={current} campaign={campaign} campaigns={campaigns} blocks={blocks}
-        recordFlag={recordFlag} advance={advance} notify={notify} />
+        recordFlag={recordFlag} advance={advance} notify={notify}
+        onActionError={msg => setActionErrors(list => [...list, msg])} />
     </>
   );
 }
 
-function CandidateStep({ c, campaign, campaigns, blocks, recordFlag, advance, notify }: {
+function CandidateStep({ c, campaign, campaigns, blocks, recordFlag, advance, notify, onActionError }: {
   c: Candidate;
   campaign: Campaign;
   campaigns: Campaign[];
@@ -144,6 +154,7 @@ function CandidateStep({ c, campaign, campaigns, blocks, recordFlag, advance, no
   recordFlag: (id: string, kind: FlagKind, days?: number) => Promise<void>;
   advance: (k: keyof Stats) => void;
   notify: (msg: string) => void;
+  onActionError: (msg: string) => void;
 }) {
   const proposed = useMemo(() => campaignMessage(campaign, c, blocks), [campaign, c, blocks]);
   const [text, setText] = useState(proposed.text);
@@ -174,12 +185,22 @@ function CandidateStep({ c, campaign, campaigns, blocks, recordFlag, advance, no
 
   // 1 clic : copie le message, ouvre LinkedIn, et passe au suivant. Reporté 7 j le temps que
   // l'extension crée l'action dans Boond.
+  // L'action de contact est créée dans Boond en tâche de fond : pas besoin de l'extension.
+  function logAction(message: string) {
+    const typeOf = c.nextContactTypeOf === 15 || c.nextContactTypeOf === 16 ? c.nextContactTypeOf : 131;
+    api<{ created: boolean; duplicate: boolean }>("/api/actions", "POST", { candidateId: c.id, typeOf, text: message })
+      .then(r => notify(r.duplicate
+        ? `${name} : contact déjà tracé dans Boond aujourd'hui, rien ajouté`
+        : `${name} : « ${ACTION_LABELS[typeOf]} » ajouté dans Boond`))
+      .catch((e: Error) => onActionError(`${name} : ${e.message} Ajoute-le via l'extension.`));
+  }
+
   async function sendLinkedin() {
     const copied = await copy();
     if (li) window.open(li, "_blank", "noopener,noreferrer");
     else if (bu) window.open(bu, "_blank", "noopener,noreferrer");
-    notify(copied ? "Message copié, LinkedIn ouvert : colle et envoie" : "Copie impossible : sélectionne le message à la main");
-    if (!copied) return;
+    if (!copied) { notify("Copie impossible : sélectionne le message à la main"); return; }
+    logAction(text);
     recordFlag(c.id, "reporte", 7).catch(() => {});
     closeMember();
     advance("sent");
@@ -308,6 +329,11 @@ function CandidateStep({ c, campaign, campaigns, blocks, recordFlag, advance, no
           </div>
         )}
         {phone && !tel && <p className="hint" style={{ margin: 0 }}>Pas de téléphone exploitable dans Boond : message LinkedIn à la place.</p>}
+        {!(phone && tel) && (
+          <p className="hint" style={{ margin: 0 }}>
+            L&apos;envoi crée l&apos;action « {ACTION_LABELS[c.nextContactTypeOf === 15 || c.nextContactTypeOf === 16 ? c.nextContactTypeOf : 131]} » dans Boond avec ce message : pas besoin de l&apos;extension.
+          </p>
+        )}
         <p className="hint" style={{ margin: 0 }}>Ctrl + Entrée : {phone && tel ? "appel passé" : "envoyer"} · → : passer</p>
       </div>
     </article>

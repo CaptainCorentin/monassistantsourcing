@@ -64,3 +64,33 @@ test("classer : historique lisible, auteur, motifs écartés", () => {
   assert.equal(c.history[1].byMe, true);
   assert.equal(c.pastProcessByMe, false);
 });
+
+test("action : validation de la demande", () => {
+  const ok = run(src("action_validate.js"), { $json: { body: { candidateId: "18571", typeOf: 15, text: "  Hello\u0007 Léa\n  " } } })[0].json;
+  assert.deepEqual(ok, { valid: true, candidateId: "18571", typeOf: 15, text: "Hello  Léa", dryRun: false });
+  assert.equal(run(src("action_validate.js"), { $json: { body: { candidateId: "18571", typeOf: 40, text: "x" } } })[0].json.valid, false);
+  assert.equal(run(src("action_validate.js"), { $json: { body: { candidateId: "1; drop", typeOf: 131, text: "x" } } })[0].json.valid, false);
+  assert.equal(run(src("action_validate.js"), { $json: { body: { candidateId: "1", typeOf: 131, text: "   " } } })[0].json.valid, false);
+});
+
+test("action : format de l'extension, anti-doublon 24 h, mode test", () => {
+  const req = { valid: true, candidateId: "18571", typeOf: 131, text: "Bonjour Léa", dryRun: false };
+  const nodes = { "Valider la demande": [{ json: req }] };
+  const old = { data: [{ attributes: { typeOf: 131, startDate: "2025-01-01T10:00:00+0100" }, relationships: { mainManager: { data: { id: "15675" } } } }] };
+  const out = run(src("action_prepare.js"), { $json: old, nodes })[0].json;
+  assert.equal(out.create, true);
+  assert.equal(out.body.data.attributes.typeOf, 131);
+  assert.match(out.body.data.attributes.startDate, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+0000$/);
+  assert.deepEqual(out.body.data.relationships.dependsOn.data, { id: "18571", type: "candidate" });
+  assert.deepEqual(out.body.data.relationships.mainManager.data, { id: "15675", type: "resource" });
+  const fresh = { data: [{ attributes: { typeOf: 131, startDate: new Date(Date.now() - 3600e3).toISOString() }, relationships: { mainManager: { data: { id: "15675" } } } }] };
+  const dup = run(src("action_prepare.js"), { $json: fresh, nodes })[0].json;
+  assert.equal(dup.create, false);
+  assert.equal(dup.duplicate, true);
+  const colleague = { data: [{ attributes: { typeOf: 131, startDate: new Date().toISOString() }, relationships: { mainManager: { data: { id: "6678" } } } }] };
+  assert.equal(run(src("action_prepare.js"), { $json: colleague, nodes })[0].json.create, true);
+  const dry = run(src("action_prepare.js"), { $json: old, nodes: { "Valider la demande": [{ json: { ...req, dryRun: true } }] } })[0].json;
+  assert.equal(dry.create, false);
+  assert.equal(dry.dryRun, true);
+  assert.equal(run(src("action_prepare.js"), { $json: { error: { message: "x" } }, nodes })[0].json.create, false);
+});

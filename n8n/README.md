@@ -28,6 +28,19 @@ Le code des nœuds Code vit dans `n8n/src/` et `rules/contactability.js`. `n8n/b
 2. `printf %s "<clé>" | sha256sum` → mettre l'empreinte dans le nœud « Clé valide ? ».
 3. Mettre la clé dans Supabase : `update app_config set value = '<clé>' where key = 'n8n_webhook_key'` (ou dans Vercel, `N8N_WEBHOOK_KEY`, prioritaire).
 
+## VIVIER BOOND - Action de contact (webapp) (`AKNf2ad6AoOUDh1n`)
+
+Publié, webhook `POST https://wefiit.app.n8n.cloud/webhook/vivier-boond-action`, appelé par la webapp à chaque « Envoyer sur LinkedIn ».
+
+| Étape | Nœuds | Rôle |
+|---|---|---|
+| 1. Entrée sécurisée | Webapp · Message envoyé, Calculer l'empreinte de la clé, Clé valide ?, Refuser (401) | Même clé que la recherche. |
+| 2. Validation | Valider la demande, Demande valide ?, Refuser (400) | `candidateId` numérique, `typeOf` ∈ 131 / 15 / 16, texte non vide (4 000 caractères max). |
+| 3. Anti-doublon | Boond · Historique du candidat, Préparer l'action (anti-doublon), Action à créer ? | Rien n'est écrit si Corentin a tracé un contact sur ce candidat dans les 24 h, en mode test (`dryRun`) ou si l'historique est illisible. |
+| 4. Écriture | Boond · Créer l'action de contact, Résumer la création, Répondre | `POST /api/actions`, même format que l'extension (texte = message, date UTC, responsable 15675). |
+
+Entrée : `{ candidateId, typeOf, text, dryRun? }`. Sortie : `{ ok, actionId }`, ou `{ ok, created: false, duplicate, dryRun, preview }`. Code testé hors N8N : `n8n/src/action_*.js`, `rules/n8n.test.mjs`.
+
 ## TEST WEBAPP VIVIER EN LIGNE (`vMwmlsis2fg6Fxpd`)
 
 Contrôles en lecture seule du site déployé : page de connexion, redirection sans session, refus des API sans session, mauvais mot de passe, en-têtes de sécurité, et `/api/health` (présence des variables ; avec la clé, appels réels à Supabase et au ping N8N). La clé n'est pas stockée dans le workflow : à l'exécution, l'envoyer dans l'en-tête `x-health-key` du webhook de test.

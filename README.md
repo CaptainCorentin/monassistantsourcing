@@ -1,10 +1,11 @@
 # Vivier Boond
 
-Webapp personnelle de sourcing de Corentin Barczyk (WeFiiT), organisée en campagnes. Une campagne = un ciblage Boond (états, préfixe du titre, mots-clés, téléphone) + un canal (LinkedIn ou cold call) + un message unique. Une fois lancée, les candidats contactables défilent un par un, avec leur historique Boond et le message pré-rempli : « Envoyer sur LinkedIn » copie le message et ouvre le profil en 1 clic, « Passer » reporte, sort du vivier ou déplace vers une autre campagne. Elle n'écrit jamais dans Boond : le contact se fait depuis LinkedIn avec l'extension « Sourcing LinkedIn — WeFiiT ».
+Webapp personnelle de sourcing de Corentin Barczyk (WeFiiT), organisée en campagnes. Une campagne = un ciblage Boond (états, préfixe du titre, mots-clés, téléphone) + un canal (LinkedIn ou cold call) + un message unique. Une fois lancée, les candidats contactables défilent un par un, avec leur historique Boond et le message pré-rempli : « Envoyer sur LinkedIn » copie le message, ouvre le profil et crée l'action de contact dans Boond en 1 clic, « Passer » reporte, sort du vivier ou déplace vers une autre campagne. Elle n'écrit jamais dans Boond : le contact se fait depuis LinkedIn avec l'extension « Sourcing LinkedIn — WeFiiT ».
 
 ```
 Navigateur ─► Next.js sur Vercel ─┬─► Supabase (mot de passe, sessions, campagnes, banque de messages, ids Boond reportés / sortis / déplacés)
-                                  └─► N8N « VIVIER BOOND - Webapp sourcing » ─► API Boond (lecture)
+                                  ├─► N8N « VIVIER BOOND - Webapp sourcing » ─► API Boond (lecture)
+                                  └─► N8N « VIVIER BOOND - Action de contact (webapp) » ─► API Boond (création de l'action 131 / 15 / 16)
 ```
 
 ## Mise en route

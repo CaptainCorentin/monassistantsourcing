@@ -14,7 +14,7 @@ Navigateur ── mot de passe (cookie httpOnly signé) ──► Next.js sur Ve
 - Aucun stockage de données candidat. Les candidats sont lus dans Boond à chaque recherche : 1 appel liste filtré, puis 1 appel historique par fiche (300 fiches max, 10 à 40 s).
 - Supabase contient les templates et les statuts propres à l'interface (masqué, reporté), indexés par id Boond uniquement.
 - Le workflow de l'extension (`bZsfmIdulu88qB1Y`) **n'est pas modifié ni appelé**. Les règles sont dupliquées dans `rules/contactability.js`, testé ici puis collé dans le nœud Code du nouveau workflow.
-- La webapp est en **lecture seule** : aucune écriture dans Boond. Le contact se fait depuis LinkedIn avec l'extension.
+- ~~La webapp est en lecture seule~~ **Révisé le 20/10 à la demande de Corentin** : « Envoyer sur LinkedIn » crée l'action de contact (131, ou 15 / 16 pour une relance) dans Boond, avec le message envoyé, au même format que l'extension (workflow N8N « VIVIER BOOND - Action de contact (webapp) », `AKNf2ad6AoOUDh1n`). Garde-fous : clé SHA-256, demande validée (id numérique, type 131 / 15 / 16, texte ≤ 4 000 caractères), anti-doublon (rien n'est écrit si Corentin a déjà tracé un contact sur ce candidat dans les 24 h), mode test `dryRun` sans écriture, exécutions réussies non conservées. C'est la seule écriture : ni fiche, ni état, ni autre action. L'extension reste utile pour les profils hors Boond.
 - Une recherche = 1 exécution N8N (liste filtrée + vérification de chaque candidat par id, 100 maximum).
 - "À relancer" est aligné sur l'extension : relance proposée seulement si le dernier contact est le mien et date de moins de 30 j.
 
