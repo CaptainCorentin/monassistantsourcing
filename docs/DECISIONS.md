@@ -94,3 +94,21 @@ Conséquence : une page de 50 candidats = 1 appel liste + 50 appels historique.
 Dictionnaire Boond, états candidat : 0 A traiter !, 5 P+, 11 LN+ (vivier), 13 Vivier +++.
 
 Dictionnaire Boond, actions candidat utiles : 131 1er Contact, 15 2ème Contact, 16 3ème Contact et +, 18 Retour Négatif / Pas Intéressé, 1 Relance à faire / Rappel, 19 Fin de process à l'initiative du candidat, 133 Fin de process à NOTRE initiative, 12 Pré-qualification, 40 Entretien 1, 45 Entretien 2, 130 Entretien 3, 14 Entretien Entre Pairs, 134 Entretien en SUPPORT, 43 ED, 7 EM, 42 Signature, 132 Reco Talent A CONTACTER.
+
+## Filtres Boond utilisables pour des campagnes (discovery du 20/10, lecture seule)
+
+Base : mes fiches LN+ et Vivier +++ = 216. Tout le vivier WeFiiT LN+ et Vivier +++ = 2 096. Mes « A traiter ! » = 461.
+
+| Filtre | Paramètre `/candidates` | Actif ? | Répartition sur mes 216 |
+|---|---|---|---|
+| Évaluation globale | `evaluations[]=A/B` (valeur exacte) | oui | non évalués 140 ; A/B 29, B/B 16, A/A 12, B/A 10, A/C 4, B 3, B/C 2. A/A + A/B + B/A + B/B = 67 (756 sur tout le vivier) |
+| Disponibilité | `availabilityTypes[]=0` | oui | Immédiate 14, < 1 mois 4, 1 à 3 mois 7, 3 mois 14, > 3 mois 7, date précise ~15, vide 156 |
+| Expérience | `experiences[]=1` | oui | Débutant 14, Junior 35, Confirmé 42, Senior 13, Expert 1, vide 111 |
+| Provenance | `sources[]=1` | oui | LinkedIn eMsg 49, KASPR 44, Annonces WTTJ 43, APEC CV 40, Cooptation 17, autres < 5 |
+| Date de création | `period=created&startDate&endDate` | oui | 29 créées depuis le 01/01/2026 |
+| Date de mise à jour | `period=updated` | oui | |
+| Date de dernière action | `period=actions`, `lastAction`, `action` | **non** (ignoré) | calculé par N8N depuis l'historique : jamais contacté, mon contact > 6 mois, collègue > 60 j |
+| Flags, `globalEvaluations[]` | | non (ignorés) | |
+| Outils, domaines | | quasi vides (≤ 15 fiches renseignées) | |
+
+Évaluations détaillées : chaque entretien porte 2 critères notés A à D et le recruteur (`evaluations[].notations`, `manager`). L'évaluation globale résume « critère 1 / critère 2 ».
