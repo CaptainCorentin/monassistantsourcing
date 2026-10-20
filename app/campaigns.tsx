@@ -32,7 +32,7 @@ function describe(c: Draft) {
 // Description des tuiles prêtes à lancer.
 const PRESET_INFO: Record<string, string> = {
   pepites: "Vus en entretien avec un A en soft skills, quelle que soit la note Product : l'occasion de voir si la partie Product a progressé.",
-  jamais: "Tes LN+ et Vivier +++ jamais contactés.",
+  jamais: "Tes fiches « A traiter ! » sans aucun message dans Boond : les seules vraiment jamais contactées (un LN+ ou Vivier +++ a déjà échangé avec WeFiiT).",
   relance_campagne: "Ton dernier message date de plus de 6 mois, sans suite : nouvelle campagne, nouvelle accroche.",
   repris: "Contactés par un collègue il y a plus de 60 jours : tu reprends le fil.",
   relances: "Relance 1 ou 2 due, entre 7 et 30 jours après ton dernier message.",
@@ -233,6 +233,9 @@ export default function CampaignsScreen({ campaigns, setCampaigns, blocks, onLau
                 ))}
               </div>
               <span className="hint">Calculé depuis l&apos;historique Boond à chaque lancement. Aucun coché : tous les contactables.</span>
+              {f.segments.includes("jamais_contacte") && f.states.some(s => s === 11 || s === 13) && (
+                <span className="warn">Un LN+ ou Vivier +++ a déjà échangé avec WeFiiT : « aucun message tracé » y désigne un échange hors des actions 1er / 2e / 3e contact. Pour des candidats jamais contactés, cible « A traiter ! ».</span>
+              )}
             </div>
             <div className="row">
               <div className="field grow">

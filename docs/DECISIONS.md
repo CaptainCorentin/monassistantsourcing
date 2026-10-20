@@ -102,7 +102,7 @@ Tuiles en tête d'écran, chacune avec séniorité en un clic (PO1, PO2, PO3, QA
 | Tuile | Ciblage |
 |---|---|
 | Pépites déjà validées | Évaluation soft skills A (A, A/A, A/B, A/C, A/D), peu importe la note Product : on voit si le Product a progressé. États 0, 5, 11, 13, mes fiches |
-| Jamais contactés | LN+ et Vivier +++, segment « jamais contacté » |
+| Jamais contactés (A traiter !) | État « A traiter ! », aucun message tracé. Un LN+ ou Vivier +++ a forcément déjà échangé avec WeFiiT : « aucun message tracé » n'y veut pas dire « jamais contacté » |
 | Relance de campagne | Segment « mon dernier contact > 6 mois » |
 | Repris d'un collègue | Segment « collègue > 60 j » |
 | Relances en cours | Candidats à relancer (R1 / R2) |

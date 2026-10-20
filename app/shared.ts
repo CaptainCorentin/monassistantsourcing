@@ -10,7 +10,7 @@ export const ACTION_LABELS: Record<number, string> = {
 };
 
 export const REASON_LABELS: Record<string, string> = {
-  jamais_contacte: "Jamais contacté",
+  jamais_contacte: "Aucun message tracé dans Boond",
   contacte_par_autre_ancien: "Contacté par un collègue il y a plus de 60 j",
   nouvelle_campagne: "Ton dernier contact date de plus de 6 mois",
   relance_due: "Relance due",
@@ -37,7 +37,7 @@ export const PREFIX_LABELS: Record<string, string> = {
 
 // Historique de contact (motif de classement N8N), utilisable comme segment de campagne.
 export const SEGMENT_LABELS: Record<string, string> = {
-  jamais_contacte: "Jamais contacté",
+  jamais_contacte: "Aucun message tracé",
   nouvelle_campagne: "Mon contact > 6 mois",
   contacte_par_autre_ancien: "Collègue > 60 j",
   relance_due: "Relance due"
