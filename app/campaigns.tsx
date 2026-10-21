@@ -31,16 +31,17 @@ function describe(c: Draft) {
 
 // Description des tuiles prêtes à lancer.
 const PRESET_INFO: Record<string, string> = {
-  conseil_generaliste: "Passés ou en poste chez MC2i, Wavestone, OnePoint, HeadMind, Adone, PwC, EY, Deloitte, Devoteam (titre, compétences ou expériences).",
-  conseil_specialiste: "Passés ou en poste chez Wivoo, Thiga, Hubvisory, Ikxo, Monsieur Guiz.",
-  qa_conseil: "QA passés ou en poste chez BAcceptance, TestIT, Zenity, Aubay, Solutec.",
-  prise_actu: "Soft skills A, contactés par un collègue il y a 3 à 12 mois, process WeFiiT de plus d'un an : tu tentes ta chance.",
-  jamais_process: "« A traiter ! », jamais de process chez WeFiiT, dernier contact il y a plus de 3 mois (vivier compris) : c'est le moment.",
+  mon_vivier: "Tes fiches LN+ et Vivier +++ : tout ce qui est contactable ou à relancer chez toi.",
+  conseil_generaliste: "Tout le vivier WeFiiT, passés ou en poste chez MC2i, Wavestone, OnePoint, HeadMind, Adone, PwC, EY, Deloitte, Devoteam (titre, compétences ou expériences).",
+  conseil_specialiste: "Tout le vivier WeFiiT, passés ou en poste chez Wivoo, Thiga, Hubvisory, Ikxo, Monsieur Guiz.",
+  qa_conseil: "Tout le vivier WeFiiT, QA passés ou en poste chez BAcceptance, TestIT, Zenity, Aubay, Solutec.",
+  prise_actu: "Tout le vivier WeFiiT : soft skills A, contactés par un collègue il y a 3 à 12 mois, process WeFiiT de plus d'un an : tu tentes ta chance.",
+  jamais_process: "Tout le vivier WeFiiT : « A traiter ! », jamais de process chez WeFiiT, dernier contact il y a plus de 3 mois (vivier compris) : c'est le moment.",
   pepites: "Vus en entretien avec un A en soft skills, quelle que soit la note Product : l'occasion de voir si la partie Product a progressé.",
   jamais: "Tes fiches « A traiter ! » sans aucun message dans Boond : les seules vraiment jamais contactées (un LN+ ou Vivier +++ a déjà échangé avec WeFiiT).",
   relance_campagne: "Ton dernier message date de plus de 6 mois, sans suite : nouvelle campagne, nouvelle accroche.",
   repris: "Contactés par un collègue il y a plus de 60 jours : tu reprends le fil.",
-  relances: "Relance 1 ou 2 due, entre 7 et 30 jours après ton dernier message.",
+  relances: "Tout le vivier WeFiiT : relance 1 ou 2 due sur tes messages, entre 7 et 30 jours après ton dernier message.",
   pepites_wefiit: "Option : mêmes pépites (soft skills A) sur tout le vivier WeFiiT, y compris les fiches de tes collègues. À utiliser avec tact."
 };
 const QUICK_PREFIXES: Record<string, string[]> = { PO1: ["PO1"], PO2: ["PO2"], PO3: ["PO3"], QA: ["QA0", "QA1", "QA2"] };
@@ -330,7 +331,7 @@ export default function CampaignsScreen({ campaigns, setCampaigns, blocks, onLau
     );
   }
 
-  const order = ["conseil_generaliste", "conseil_specialiste", "qa_conseil", "prise_actu", "jamais_process", "relances"];
+  const order = ["mon_vivier", "conseil_generaliste", "conseil_specialiste", "qa_conseil", "prise_actu", "jamais_process", "relances"];
   const rank = (c: Campaign) => { const i = order.indexOf(c.preset ?? ""); return i < 0 ? order.length : i; };
   const presets = campaigns.filter(c => c.preset).sort((a, b) => rank(a) - rank(b));
   const own = campaigns.filter(c => !c.preset);

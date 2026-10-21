@@ -17,7 +17,7 @@ export type Campaign = {
 };
 
 export const DEFAULT_FILTERS: SearchParams = {
-  keywords: "", states: [11, 13], sort: "updateDate", order: "desc", scope: "mine", maxChecks: 300, titlePrefixes: [], requirePhone: false,
+  keywords: "", states: [11, 13], sort: "updateDate", order: "desc", scope: "all", maxChecks: 300, titlePrefixes: [], requirePhone: false,
   evaluations: [], segments: [], companies: []
 };
 

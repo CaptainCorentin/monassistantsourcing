@@ -95,6 +95,10 @@ Dictionnaire Boond, états candidat : 0 A traiter !, 5 P+, 11 LN+ (vivier), 13 V
 
 Dictionnaire Boond, actions candidat utiles : 131 1er Contact, 15 2ème Contact, 16 3ème Contact et +, 18 Retour Négatif / Pas Intéressé, 1 Relance à faire / Rappel, 19 Fin de process à l'initiative du candidat, 133 Fin de process à NOTRE initiative, 12 Pré-qualification, 40 Entretien 1, 45 Entretien 2, 130 Entretien 3, 14 Entretien Entre Pairs, 134 Entretien en SUPPORT, 43 ED, 7 EM, 42 Signature, 132 Reco Talent A CONTACTER.
 
+## Périmètre (21/10)
+
+Toutes les tuiles portent sur tout le vivier WeFiiT (`scope: all`), y compris les nouvelles campagnes par défaut. La tuile « Mon vivier » reprend mes fiches LN+ et Vivier +++ (à contacter et à relancer). La règle « contacté par un collègue il y a moins de 60 j » protège les fiches des collègues. Limite : 300 fiches lues par lancement (les plus récemment mises à jour) ; sur tout le vivier, une partie des fiches anciennes n'est pas lue.
+
 ## Campagnes v3 (21/10)
 
 | Tuile | Ciblage |
