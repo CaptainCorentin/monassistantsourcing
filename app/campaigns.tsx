@@ -31,7 +31,7 @@ function describe(c: Draft) {
 
 // Description des tuiles prêtes à lancer.
 const PRESET_INFO: Record<string, string> = {
-  conseil_generaliste: "Passés ou en poste chez MC2i, Wavestone, OnePoint, HeadMind, Adone, Thiga, PwC, EY, Deloitte, Devoteam (titre, compétences ou expériences).",
+  conseil_generaliste: "Passés ou en poste chez MC2i, Wavestone, OnePoint, HeadMind, Adone, PwC, EY, Deloitte, Devoteam (titre, compétences ou expériences).",
   conseil_specialiste: "Passés ou en poste chez Wivoo, Thiga, Hubvisory, Ikxo, Monsieur Guiz.",
   qa_conseil: "QA passés ou en poste chez BAcceptance, TestIT, Zenity, Aubay, Solutec.",
   prise_actu: "Soft skills A, contactés par un collègue il y a 3 à 12 mois, process WeFiiT de plus d'un an : tu tentes ta chance.",

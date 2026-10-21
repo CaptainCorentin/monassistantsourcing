@@ -99,7 +99,7 @@ Dictionnaire Boond, actions candidat utiles : 131 1er Contact, 15 2ème Contact,
 
 | Tuile | Ciblage |
 |---|---|
-| Conseil généraliste | MC2i, Wavestone, OnePoint, HeadMind, Adone, Thiga, PwC, EY, Deloitte, Devoteam |
+| Conseil généraliste | MC2i, Wavestone, OnePoint, HeadMind, Adone, PwC, EY, Deloitte, Devoteam (Thiga retiré le 21/10 : il reste en spécialiste) |
 | Conseil spécialiste | Wivoo, Thiga, Hubvisory, Ikxo, Monsieur Guiz |
 | QA Conseil | BAcceptance, TestIT, Zenity, Aubay, Solutec (séniorité et discipline QA) |
 | Prise d'actu | Soft skills A, dernier contact d'un collègue il y a 3 à 12 mois, process WeFiiT de plus d'un an |
