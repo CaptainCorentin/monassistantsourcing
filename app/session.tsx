@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Campaign } from "@/lib/campaigns";
 import type { Candidate, SearchResult } from "@/lib/types";
 import { campaignMessage, type Block } from "@/lib/messages";
+import { SEGMENTS_OPENING_VIVIER, inSegments } from "@/lib/segments";
 import { ACTION_LABELS, DAY, REASON_LABELS, STATES, api, boondUrl, formatDate, safeLinkedin, telHref } from "./shared";
 
 export type FlagKind = "masque" | "reporte";
@@ -11,12 +12,18 @@ type Stats = { sent: number; passed: number; later: number; out: number; moved: 
 const NO_STATS: Stats = { sent: 0, passed: 0, later: 0, out: 0, moved: 0 };
 const INVITATION_LIMIT = 300;
 
+// Catégories visées. Certains segments (ex. « jamais de process ») ouvrent aussi le vivier.
+function wantedCategories(campaign: Campaign) {
+  const base = campaign.target === "tous" ? ["a_contacter", "a_relancer"] : [campaign.target];
+  return campaign.filters.segments.some(s => SEGMENTS_OPENING_VIVIER.includes(s)) ? [...base, "vivier"] : base;
+}
+
 // Candidats de la campagne, dans l'ordre de passage : fiches ajoutées à la main d'abord.
 function queueOf(result: SearchResult, campaign: Campaign, isFlagged: (id: string) => boolean) {
-  const wanted = campaign.target === "tous" ? ["a_contacter", "a_relancer"] : [campaign.target];
+  const wanted = wantedCategories(campaign);
   const segments = campaign.filters.segments;
-  const inSegment = (c: Candidate) => !segments.length || c.addedToCampaign || segments.includes(c.reasons[0]);
-  const kept = result.candidates.filter(c => wanted.includes(c.category) && !isFlagged(c.id) && inSegment(c));
+  const now = Date.now();
+  const kept = result.candidates.filter(c => wanted.includes(c.category) && !isFlagged(c.id) && (c.addedToCampaign || inSegments(c, segments, now)));
   return [...kept.filter(c => c.addedToCampaign), ...kept.filter(c => !c.addedToCampaign)];
 }
 
@@ -86,7 +93,7 @@ export default function Session({ campaign, campaigns, blocks, isFlagged, record
   const excluded = Object.entries(result.excluded).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
   const flaggedCount = result.candidates.length - result.candidates.filter(c => !isFlagged(c.id)).length;
   if (flaggedCount) excluded.push(["deja_traite", flaggedCount]);
-  const wanted = campaign.target === "tous" ? ["a_contacter", "a_relancer"] : [campaign.target];
+  const wanted = wantedCategories(campaign);
   const outOfSegment = result.candidates.filter(c => !isFlagged(c.id) && wanted.includes(c.category)).length - queue.length;
   if (outOfSegment > 0) excluded.push(["hors_segment", outOfSegment]);
   const header = (
@@ -259,6 +266,7 @@ function CandidateStep({ c, campaign, campaigns, blocks, recordFlag, advance, no
         <div className="context">
           <span className={`pill ${c.category}`}>{REASON_LABELS[c.reasons[0]] || c.category}</span>
           {c.addedToCampaign && <span className="pill state">Ajouté à cette campagne</span>}
+          {c.company && <span className="pill state">{c.company} ({c.companyInTitle ? "titre" : "dans la fiche"})</span>}
           {lastContactDays !== null && (
             <span className="muted">Dernier contact il y a {lastContactDays} j{c.lastContact?.byMe ? " (toi)" : ""}</span>
           )}

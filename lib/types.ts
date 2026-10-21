@@ -23,6 +23,8 @@ export type Candidate = {
   pastProcessByMe?: boolean | null;
   phone?: string | null;
   addedToCampaign?: boolean;
+  company?: string | null;
+  companyInTitle?: boolean;
   history?: HistoryItem[];
 };
 
@@ -39,6 +41,8 @@ export type SearchParams = {
   evaluations: string[];
   // Historique de contact calculé par N8N (motif de classement), filtré dans la session.
   segments: string[];
+  // Entreprises citées dans la fiche (titre, compétences, expériences) : recherche Boond puis confirmation N8N.
+  companies: string[];
 };
 
 export type SearchResult = {

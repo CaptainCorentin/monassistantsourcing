@@ -42,7 +42,7 @@ test("lister : PAD / TR, préfixe ciblé, téléphone requis, fiches ajoutées s
   assert.deepEqual(rows.map(r => r.id), ["9", "1"]);
   assert.equal(rows[0].addedToCampaign, true);
   assert.equal(rows[1].phone, "06 00 00 00 00");
-  assert.deepEqual(rows[0].excludedCounts, { profil_pad_tr: 1, hors_cible: 1, sans_telephone: 1 });
+  assert.deepEqual(rows[0].excludedCounts, { profil_pad_tr: 1, hors_cible: 1, sans_telephone: 1, hors_entreprise: 0 });
 });
 
 test("classer : historique lisible, auteur, motifs écartés", () => {
@@ -93,4 +93,21 @@ test("action : format de l'extension, anti-doublon 24 h, mode test", () => {
   assert.equal(dry.create, false);
   assert.equal(dry.dryRun, true);
   assert.equal(run(src("action_prepare.js"), { $json: { error: { message: "x" } }, nodes })[0].json.create, false);
+});
+
+test("entreprises : mots-clés Boond en OU, nom confirmé dans la fiche", () => {
+  const prepared = run(src("prepare.js"), { $json: { body: { keywords: "ignoré", companies: ["Wavestone", "BAcceptance", "TestIT", "Monsieur Guiz", "<script>"] } } });
+  const q = decodeURIComponent(prepared[0].json.url);
+  assert.match(q, /keywords=wavestone bacceptance b-acceptance testit test-it monsieurguiz monsieur-guiz(&|$)/);
+  assert.deepEqual(prepared[0].json.params.companies, ["Wavestone", "BAcceptance", "TestIT", "Monsieur Guiz"]);
+  const search = { data: [
+    cand(1, "PO2 - Product Owner @Wavestone"),
+    cand(2, "QA1 - Testeur", { references: [{ company: "B Acceptance", title: "QA", description: "" }] }),
+    cand(3, "QA2 - Test Lead", { skills: "latest items, tests d'acceptance" }),
+    cand(4, "QA1 - QA", { references: [{ company: "Test IT", title: "", description: "" }] }),
+    cand(5, "PO1 - PO", { skills: "Ex consultant chez Monsieur Guiz" })
+  ] };
+  const rows = run(src("list.js"), { input: [{ json: search }], nodes: { "Préparer la recherche": prepared } }).map(r => r.json);
+  assert.deepEqual(rows.map(r => [r.id, r.company, r.companyInTitle]), [["1", "Wavestone", true], ["2", "BAcceptance", false], ["4", "TestIT", false], ["5", "Monsieur Guiz", false]]);
+  assert.equal(rows[0].excludedCounts.hors_entreprise, 1);
 });

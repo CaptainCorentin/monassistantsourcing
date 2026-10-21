@@ -18,7 +18,7 @@ export type Campaign = {
 
 export const DEFAULT_FILTERS: SearchParams = {
   keywords: "", states: [11, 13], sort: "updateDate", order: "desc", scope: "mine", maxChecks: 300, titlePrefixes: [], requirePhone: false,
-  evaluations: [], segments: []
+  evaluations: [], segments: [], companies: []
 };
 
 const SENIORITIES = ["PO1", "PO2", "PO3", "QA"] as const;

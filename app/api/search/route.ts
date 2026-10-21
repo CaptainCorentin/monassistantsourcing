@@ -50,6 +50,8 @@ function sanitize(raw: unknown): SearchResult | null {
       pastProcessByMe: typeof c.pastProcessByMe === "boolean" ? c.pastProcessByMe : null,
       phone: typeof c.phone === "string" ? c.phone.replace(/[^\d+ ().-]/g, "").slice(0, 30) || null : null,
       addedToCampaign: c.addedToCampaign === true,
+      company: typeof c.company === "string" ? c.company.slice(0, 40) : null,
+      companyInTitle: c.companyInTitle === true,
       history
     });
   }

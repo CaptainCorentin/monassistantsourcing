@@ -28,6 +28,18 @@ const EVALUATIONS = ['A', 'B', 'C', 'D', 'A/A', 'A/B', 'A/C', 'A/D', 'B/A', 'B/B
 const evaluations = Array.isArray(body.evaluations)
   ? [...new Set(body.evaluations.map(String))].filter(e => EVALUATIONS.includes(e))
   : [];
+// Entreprises ciblées (« Wavestone », « BAcceptance »…) : recherche Boond sur toute la fiche, en OU.
+// Les majuscules internes séparent les mots (BAcceptance → B Acceptance) ; la variante à tiret
+// rattrape les graphies « B-Acceptance ». N8N confirme ensuite le nom dans la fiche (« Lister »).
+const companies = Array.isArray(body.companies)
+  ? [...new Set(body.companies.map(c => String(c).trim()))].filter(c => /^[\p{L}\p{N} &.'-]{2,40}$/u.test(c)).slice(0, 30)
+  : [];
+const companyTokens = c => c.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2')
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+const companyKeywords = companies.flatMap(c => {
+  const t = companyTokens(c);
+  return t.length > 1 ? [t.join(''), t.join('-')] : t;
+});
 const extraIds = Array.isArray(body.extraIds)
   ? [...new Set(body.extraIds.map(String))].filter(id => /^\d{1,9}$/.test(id)).slice(0, 100)
   : [];
@@ -39,13 +51,13 @@ const query = encode([
   ['page', 1],
   ['sort', sort],
   ['order', order],
-  ...(keywords ? [['keywords', keywords]] : []),
+  ...(companyKeywords.length ? [['keywords', companyKeywords.join(' ')]] : keywords ? [['keywords', keywords]] : []),
   ...(scope === 'mine' ? [['perimeterManagers[]', ME]] : []),
   ...states.map(s => ['candidateStates[]', s]),
   ...evaluations.map(e => ['evaluations[]', e])
 ]);
 
-const params = { keywords, states, scope, sort, order, maxChecks, titlePrefixes, requirePhone, evaluations, extraIds };
+const params = { keywords, states, scope, sort, order, maxChecks, titlePrefixes, requirePhone, evaluations, companies, extraIds };
 const items = [{ json: { params, source: 'search', url: B + query } }];
 // Boond cherche « CAND123 CAND456 » en OU : une seule requête pour toutes les fiches ajoutées.
 if (extraIds.length) {

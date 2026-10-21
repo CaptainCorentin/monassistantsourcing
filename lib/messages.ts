@@ -188,6 +188,7 @@ type CampaignLike = { message: string; seniority: Seniority; discipline: Discipl
 type CandidateLike = {
   firstName: string; lastName: string; title: string; town: string; state: number; reasons: string[];
   category: string; nextContactTypeOf: number | null; pastProcessDate?: string | null; pastProcessByMe?: boolean | null;
+  company?: string | null; companyInTitle?: boolean;
 };
 
 // Message proposé pour un candidat dans une campagne : relance de la banque (R1 / R2) si le candidat
@@ -195,6 +196,8 @@ type CandidateLike = {
 export function campaignMessage(campaign: CampaignLike, c: CandidateLike, blocks: Block[]) {
   const vars: Record<string, string> = {
     prenom: c.firstName, nom: c.lastName, titre: c.title, ville: c.town,
+    // Entreprise ciblée par la campagne, seulement si elle figure dans le titre (poste actuel).
+    entreprise: c.companyInTitle && c.company ? c.company : "",
     argument_metier: blockBody(blocks, `ARG-${campaign.discipline}`)
   };
   if (c.category === "a_relancer") {

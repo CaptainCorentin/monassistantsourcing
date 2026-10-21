@@ -95,6 +95,21 @@ Dictionnaire Boond, états candidat : 0 A traiter !, 5 P+, 11 LN+ (vivier), 13 V
 
 Dictionnaire Boond, actions candidat utiles : 131 1er Contact, 15 2ème Contact, 16 3ème Contact et +, 18 Retour Négatif / Pas Intéressé, 1 Relance à faire / Rappel, 19 Fin de process à l'initiative du candidat, 133 Fin de process à NOTRE initiative, 12 Pré-qualification, 40 Entretien 1, 45 Entretien 2, 130 Entretien 3, 14 Entretien Entre Pairs, 134 Entretien en SUPPORT, 43 ED, 7 EM, 42 Signature, 132 Reco Talent A CONTACTER.
 
+## Campagnes v3 (21/10)
+
+| Tuile | Ciblage |
+|---|---|
+| Conseil généraliste | MC2i, Wavestone, OnePoint, HeadMind, Adone, Thiga, PwC, EY, Deloitte, Devoteam |
+| Conseil spécialiste | Wivoo, Thiga, Hubvisory, Ikxo, Monsieur Guiz |
+| QA Conseil | BAcceptance, TestIT, Zenity, Aubay, Solutec (séniorité et discipline QA) |
+| Prise d'actu | Soft skills A, dernier contact d'un collègue il y a 3 à 12 mois, process WeFiiT de plus d'un an |
+| Jamais de process, c'est le moment ! | « A traiter ! », jamais de process, dernier contact (toi ou un collègue) il y a plus de 3 mois, vivier compris |
+| Relances en cours | inchangée |
+
+Entreprises : recherche Boond par mots-clés sur toute la fiche (en OU ; les guillemets ne fonctionnent pas), puis N8N confirme le nom en mots entiers dans titre, compétences, expériences ou diplômes (« Testit » seul ramenait 195 fiches par approximation). `{{entreprise}}` = l'entreprise si elle est dans le titre. Mes fiches, états 0, 5, 11, 13.
+
+« Jamais de process » lève, pour cette campagne seulement, la règle « vivier jusqu'à 6 mois après mon dernier contact » ; les blocages (process, fin de process, pas intéressé, rappel, collègue < 60 j) restent. Segments dans `lib/segments.ts`, testés par `rules/segments.test.mjs`. Les tuiles précédentes (Pépites, Jamais contactés, Relance de campagne, Repris d'un collègue, Pépites WeFiiT) sont archivées, pas supprimées.
+
 ## Campagnes prêtes à lancer (20/10)
 
 Tuiles en tête d'écran, chacune avec séniorité en un clic (PO1, PO2, PO3, QA = préfixe du titre) et canal (LinkedIn ou cold call) :

@@ -20,7 +20,7 @@ function describe(c: Draft) {
   return [
     f.states.map(s => STATES[s]).join(" + "),
     f.titlePrefixes.length ? f.titlePrefixes.map(p => PREFIX_LABELS[p]).join(", ") : "tous les titres",
-    f.keywords ? `« ${f.keywords} »` : "",
+    f.companies.length ? f.companies.join(", ") : f.keywords ? `« ${f.keywords} »` : "",
     f.scope === "all" ? "tout le vivier WeFiiT" : "mes fiches",
     f.evaluations.length ? `évaluation ${f.evaluations.join(", ")}` : "",
     f.segments.length ? f.segments.map(x => SEGMENT_LABELS[x]).join(", ") : "",
@@ -31,6 +31,11 @@ function describe(c: Draft) {
 
 // Description des tuiles prêtes à lancer.
 const PRESET_INFO: Record<string, string> = {
+  conseil_generaliste: "Passés ou en poste chez MC2i, Wavestone, OnePoint, HeadMind, Adone, Thiga, PwC, EY, Deloitte, Devoteam (titre, compétences ou expériences).",
+  conseil_specialiste: "Passés ou en poste chez Wivoo, Thiga, Hubvisory, Ikxo, Monsieur Guiz.",
+  qa_conseil: "QA passés ou en poste chez BAcceptance, TestIT, Zenity, Aubay, Solutec.",
+  prise_actu: "Soft skills A, contactés par un collègue il y a 3 à 12 mois, process WeFiiT de plus d'un an : tu tentes ta chance.",
+  jamais_process: "« A traiter ! », jamais de process chez WeFiiT, dernier contact il y a plus de 3 mois (vivier compris) : c'est le moment.",
   pepites: "Vus en entretien avec un A en soft skills, quelle que soit la note Product : l'occasion de voir si la partie Product a progressé.",
   jamais: "Tes fiches « A traiter ! » sans aucun message dans Boond : les seules vraiment jamais contactées (un LN+ ou Vivier +++ a déjà échangé avec WeFiiT).",
   relance_campagne: "Ton dernier message date de plus de 6 mois, sans suite : nouvelle campagne, nouvelle accroche.",
@@ -102,11 +107,13 @@ export default function CampaignsScreen({ campaigns, setCampaigns, blocks, onLau
   const [draft, setDraft] = useState<Draft | null>(null);
   const [saving, setSaving] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [companiesText, setCompaniesText] = useState("");
 
   function edit(c: Campaign | null) {
     setEditing(c);
     setDraft(c ? { name: c.name, channel: c.channel, target: c.target, filters: c.filters, seniority: c.seniority, discipline: c.discipline, message: c.message } : { ...EMPTY, filters: { ...DEFAULT_FILTERS } });
     setConfirmArchive(false);
+    setCompaniesText(c ? c.filters.companies.join(", ") : "");
   }
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft(d => (d ? { ...d, [k]: v } : d));
   const setFilter = <K extends keyof Draft["filters"]>(k: K, v: Draft["filters"][K]) =>
@@ -239,8 +246,16 @@ export default function CampaignsScreen({ campaigns, setCampaigns, blocks, onLau
             </div>
             <div className="row">
               <div className="field grow">
+                <label htmlFor="c-companies">Entreprises (séparées par des virgules)</label>
+                <input type="text" id="c-companies" maxLength={600} placeholder="Wavestone, Devoteam, BAcceptance…" autoComplete="off"
+                  value={companiesText} onChange={e => {
+                    setCompaniesText(e.target.value);
+                    setFilter("companies", e.target.value.split(",").map(x => x.trim()).filter(x => x.length >= 2).slice(0, 30));
+                  }} />
+              </div>
+              <div className="field grow">
                 <label htmlFor="c-keywords">Mots-clés Boond</label>
-                <input type="text" id="c-keywords" maxLength={120} placeholder="Data, QA, IA…" autoComplete="off"
+                <input type="text" id="c-keywords" maxLength={120} placeholder="Data, QA, IA…" autoComplete="off" disabled={f.companies.length > 0}
                   value={f.keywords} onChange={e => setFilter("keywords", e.target.value)} />
               </div>
               <div className="field">
@@ -315,7 +330,9 @@ export default function CampaignsScreen({ campaigns, setCampaigns, blocks, onLau
     );
   }
 
-  const presets = campaigns.filter(c => c.preset);
+  const order = ["conseil_generaliste", "conseil_specialiste", "qa_conseil", "prise_actu", "jamais_process", "relances"];
+  const rank = (c: Campaign) => { const i = order.indexOf(c.preset ?? ""); return i < 0 ? order.length : i; };
+  const presets = campaigns.filter(c => c.preset).sort((a, b) => rank(a) - rank(b));
   const own = campaigns.filter(c => !c.preset);
   return (
     <section className="campaigns">
