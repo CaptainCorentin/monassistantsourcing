@@ -54,12 +54,12 @@ export const KIND_LABELS: Record<BlockKind, string> = {
 };
 
 export const DEFAULT_BLOCKS: Block[] = [
-  { code: "A1", kind: "accroche", label: "A1 · Jamais contacté", body: "{{anciennete}} chez {{entreprise}}, c'est peut-être la fin d'un cycle… et le début d'un nouveau ? 😁" },
-  { code: "A1-REPLI", kind: "accroche", label: "A1 · Si entreprise ou ancienneté inconnue", body: "Ton parcours de {{titre}} a retenu mon attention." },
-  { code: "A2", kind: "accroche", label: "A2 · Contacté par un collègue (+60 j)", body: "Beaucoup de choses ont bougé chez WeFiiT ces derniers mois, et ton profil colle pile à ce qu'on construit aujourd'hui." },
-  { code: "A3", kind: "accroche", label: "A3 · Sans réponse depuis 6 mois", body: "On dit souvent que la vie est une question de feeling et de timing… mon dernier message est sûrement arrivé au mauvais moment ! 😊" },
-  { code: "A4", kind: "accroche", label: "A4 · Déjà échangé avec toi (LN+, Vivier +++)", body: "J'ai gardé un bon souvenir de nos derniers échanges, et beaucoup de choses ont bougé chez WeFiiT depuis." },
-  { code: "A5", kind: "accroche", label: "A5 · Déjà échangé avec un collègue (LN+, Vivier +++)", body: "Tu avais marqué positivement WeFiiT lors de tes derniers échanges avec nous, et beaucoup de choses ont bougé depuis." },
+  { code: "A1", kind: "accroche", label: "A1 · Jamais contacté", body: "Ton parcours m'a tout de suite interpellé, et je me dis que WeFiiT pourrait vraiment te correspondre 🚀" },
+  { code: "A1-REPLI", kind: "accroche", label: "A1 · Si entreprise ou ancienneté inconnue", body: "Ton parcours m'a tout de suite interpellé, et je me dis que WeFiiT pourrait vraiment te correspondre 🚀" },
+  { code: "A2", kind: "accroche", label: "A2 · Contacté par un collègue (+60 j)", body: "Je crois que tu as déjà reçu quelques messages de la part de mes collègues chez WeFiiT, mais ton profil m'a vraiment interpellé et je me suis dit que ça valait le coup de te recontacter 🙂" },
+  { code: "A3", kind: "accroche", label: "A3 · Sans réponse depuis 6 mois", body: "Je me permets de revenir vers toi : mon dernier message est sûrement arrivé au mauvais moment, et beaucoup de choses ont bougé chez WeFiiT depuis 🙂" },
+  { code: "A4", kind: "accroche", label: "A4 · Déjà échangé avec toi (LN+, Vivier +++)", body: "Je me permets de te recontacter : je me souviens bien de ton profil et de nos échanges, et je me suis dit que ce serait sympa de reprendre contact 🙂" },
+  { code: "A5", kind: "accroche", label: "A5 · Déjà échangé avec un collègue (LN+, Vivier +++)", body: "Je me permets de te recontacter au nom de WeFiiT : on se souvient bien de ton profil, et on s'est dit que ce serait sympa de reprendre contact 🙂" },
   { code: "POS-PO12", kind: "positionnement", label: "PO1 / PO2", body: "Chez WeFiiT, on ne fait que du Product Management, et on cherche les meilleurs PM et PO de Paris pour devenir la référence du métier en France." },
   { code: "POS-PO3", kind: "positionnement", label: "PO3", body: "Chez WeFiiT, on cherche les futurs leaders du Product Management digital, Data et IA : des profils qui font grandir nos clients autant que l'équipe." },
   { code: "POS-QA", kind: "positionnement", label: "QA", body: "Chez WeFiiT, on cherche les meilleurs QA de Paris : des stratèges de la qualité produit, impliqués dès la conception (shift left), pas de simples exécutants de tests." },

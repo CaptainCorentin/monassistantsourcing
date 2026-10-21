@@ -69,3 +69,147 @@ Titre ambigu : le bloc par défaut est appliqué et la fiche le signale. Entrepr
 > Bonjour {{prenom}}, je suis Corentin, recruteur chez WeFiiT, cabinet 100 % Product Management. Chez nous : {{argument_metier}}. Pas de practice, chacun choisit ses missions. Ouvert à en discuter ?
 
 Longueur avec un prénom de 15 lettres : 228 (D-QA) à 264 caractères (D-DIGITAL). L'outil affiche un compteur et alerte au-delà de 300.
+
+## Messages de campagne (21/10)
+
+Réécrits à partir des messages de Mathilde, signés Corentin, avec le virage IA (offres Data & IA, Claude Entreprise pour 100 % des WeFiiTers, communauté de builders, 2 sessions « PM augmenté » par semaine). Source unique : `scripts/messages-campagnes.json` (en base dans `campaigns.message` et `message_blocks`). `{{accroche}}` est choisie fiche par fiche selon l'historique.
+
+| Accroche | Cas | Texte |
+|---|---|---|
+| A1 | Jamais contacté | Ton parcours m'a tout de suite interpellé, et je me dis que WeFiiT pourrait vraiment te correspondre 🚀 |
+| A1-REPLI | Repli de A1 | Ton parcours m'a tout de suite interpellé, et je me dis que WeFiiT pourrait vraiment te correspondre 🚀 |
+| A2 | Contacté par un collègue (+60 j) | Je crois que tu as déjà reçu quelques messages de la part de mes collègues chez WeFiiT, mais ton profil m'a vraiment interpellé et je me suis dit que ça valait le coup de te recontacter 🙂 |
+| A3 | Mon message sans réponse (+6 mois) | Je me permets de revenir vers toi : mon dernier message est sûrement arrivé au mauvais moment, et beaucoup de choses ont bougé chez WeFiiT depuis 🙂 |
+| A4 | Déjà échangé avec moi | Je me permets de te recontacter : je me souviens bien de ton profil et de nos échanges, et je me suis dit que ce serait sympa de reprendre contact 🙂 |
+| A5 | Déjà échangé avec un collègue | Je me permets de te recontacter au nom de WeFiiT : on se souvient bien de ton profil, et on s'est dit que ce serait sympa de reprendre contact 🙂 |
+
+### mon_vivier
+
+```
+Hello {{prenom}} 👋
+
+{{accroche}}
+
+WeFiiT, c'est un modèle hybride entre cabinet de conseil et startup, aujourd'hui dans le top 3 des acteurs du Product Management en France, avec l'ambition d'en devenir LA référence.
+
+On réunit une communauté de Product Managers & Product Owners passionnés, qui accompagnent nos clients (Louis Vuitton, Chanel, Accor, FDJ, SNCF…) sur des missions à fort impact : discovery, delivery, stratégie produit.
+
+Et le métier change vite avec l'IA : on développe nos offres Data & IA chez nos clients, 100 % des WeFiiTers ont Claude Entreprise, on anime une communauté de builders et on organise 2 sessions de formation « PM augmenté » chaque semaine 🤖
+
+Si tu as envie d'un projet ambitieux, dans un collectif exigeant mais ultra bienveillant, je serais ravi d'en discuter avec toi 🙂
+
+Tu serais dispo cette semaine ou la semaine prochaine pour un échange rapide ?
+
+Passe une belle journée !
+Corentin
+Sales Lead chez @WeFiiT
+```
+
+### conseil_generaliste
+
+```
+Hello {{prenom}} 👋
+
+{{accroche}}
+
+Tu connais déjà le conseil. Chez WeFiiT, on a fait un choix : ne faire que du Product Management. Un modèle hybride entre cabinet de conseil et startup, dans le top 3 des acteurs du Product en France, avec l'ambition d'en devenir LA référence 🚀
+
+Concrètement, tu restes sur ton métier : pas de practice imposée, tu choisis tes missions, chez des clients comme Louis Vuitton, Chanel, Accor, FDJ ou la SNCF (discovery, delivery, stratégie produit).
+
+Et comme le Product change vite avec l'IA, on investit : nos offres Data & IA chez nos clients, Claude Entreprise pour 100 % des WeFiiTers, une communauté de builders et 2 sessions de formation « PM augmenté » par semaine 🤖
+
+Si tu as envie d'un projet ambitieux, dans un collectif exigeant mais ultra bienveillant, je serais ravi d'en discuter avec toi 🙂
+
+Tu serais dispo cette semaine ou la semaine prochaine pour un échange rapide ?
+
+Passe une belle journée !
+Corentin
+Sales Lead chez @WeFiiT
+```
+
+### conseil_specialiste
+
+```
+Hello {{prenom}} 👋
+
+{{accroche}}
+
+Tu connais déjà le conseil en Product, donc je ne vais pas te refaire le pitch du métier 😉 Ce qui fait la différence chez WeFiiT aujourd'hui, c'est la façon dont on prend le virage de l'IA :
+
+🤖 Claude Entreprise pour 100 % des WeFiiTers, et une communauté de builders
+🎓 2 sessions de formation « PM augmenté » chaque semaine
+📊 Des offres Data & IA qu'on développe chez nos clients (Louis Vuitton, Chanel, Accor, FDJ, SNCF…)
+🧭 Pas de practice imposée : tu choisis tes missions
+
+On est dans le top 3 des acteurs du Product Management en France, avec l'ambition d'en devenir LA référence 🚀
+
+Si ça te parle, je serais ravi d'en discuter avec toi 🙂
+
+Tu serais dispo cette semaine ou la semaine prochaine pour un échange rapide ?
+
+Passe une belle journée !
+Corentin
+Sales Lead chez @WeFiiT
+```
+
+### qa_conseil
+
+```
+Hello {{prenom}} 👋
+
+{{accroche}}
+
+Chez WeFiiT, la qualité fait partie du Produit : nos QA sont intégrés aux squads, impliqués dès la conception et premiers utilisateurs des features, chez des clients comme Louis Vuitton, Chanel, Accor, FDJ ou la SNCF 🚀
+
+Et avec l'IA, le métier change aussi pour la QA : on développe nos offres Data & IA, 100 % des WeFiiTers ont Claude Entreprise, on anime une communauté de builders et on organise 2 sessions de formation « PM augmenté » par semaine 🤖
+
+Un modèle hybride entre cabinet de conseil et startup, dans le top 3 des acteurs du Product Management en France : si tu as envie d'un projet ambitieux, dans un collectif exigeant mais ultra bienveillant, je serais ravi d'en discuter avec toi 🙂
+
+Tu serais dispo cette semaine ou la semaine prochaine pour un échange rapide ?
+
+Passe une belle journée !
+Corentin
+Sales Lead chez @WeFiiT
+```
+
+### prise_actu
+
+```
+Hello {{prenom}} 👋
+
+Je me permets de te recontacter au nom de WeFiiT : on se souvient bien de ton profil, et on s'est dit que ce serait sympa de reprendre contact 🙂
+
+J'aimerais prendre de tes nouvelles, échanger sur l'actu Produit (l'IA rebat pas mal les cartes en ce moment) et voir où tu en es dans ton parcours pro.
+
+De notre côté, WeFiiT continue de grandir avec des clients comme Louis Vuitton, Chanel, Accor, FDJ ou la SNCF, et prend le virage de l'IA : offres Data & IA, Claude Entreprise pour 100 % des WeFiiTers, une communauté de builders et 2 sessions de formation « PM augmenté » par semaine 🚀
+
+Si tu es partant pour un échange rapide cette semaine ou la semaine prochaine, je serais ravi d'en discuter avec toi !
+
+Très belle journée à toi,
+Corentin
+Sales Lead chez @WeFiiT
+```
+
+### jamais_process
+
+```
+Hello {{prenom}} 👋
+
+{{accroche}}
+
+On n'a encore jamais pris le temps d'échanger vraiment, et je pense que c'est le bon moment : le Product change vite avec l'IA, et WeFiiT a pris le virage 🚀
+
+👉 Un modèle hybride entre cabinet de conseil et startup, dans le top 3 des acteurs du Product Management en France
+👉 Des missions à fort impact chez Louis Vuitton, Chanel, Accor, FDJ, SNCF… et nos offres Data & IA
+👉 Claude Entreprise pour 100 % des WeFiiTers, une communauté de builders et 2 sessions de formation « PM augmenté » par semaine
+
+Si tu as envie d'un projet ambitieux, dans un collectif exigeant mais ultra bienveillant, je serais ravi d'en discuter avec toi 🙂
+
+Tu serais dispo cette semaine ou la semaine prochaine pour un échange rapide ?
+
+Passe une belle journée !
+Corentin
+Sales Lead chez @WeFiiT
+```
+
+Les relances (R1, R2) restent celles de la banque.

@@ -46,7 +46,7 @@ const vars = { prenom: "Léa", nom: "Martin", titre: "Product Owner", ville: "Pa
 test("1er message : repli A1 si entreprise inconnue, blocs dans l'ordre", () => {
   const r = assemble({ kind: "premier", hook: "A1", seniority: "PO2", discipline: "DATA" }, DEFAULT_BLOCKS, vars);
   assert.deepEqual(r.missing, []);
-  assert.match(r.text, /^Bonjour Léa,\n\nTon parcours de Product Owner a retenu mon attention\.\n\nChez WeFiiT, on ne fait que du Product Management/);
+  assert.match(r.text, /^Bonjour Léa,\n\nTon parcours m'a tout de suite interpellé, et je me dis que WeFiiT pourrait vraiment te correspondre 🚀\n\nChez WeFiiT, on ne fait que du Product Management/);
   assert.match(r.text, /Data as a Product\. Et si demain/);
   assert.match(r.text, /approfondir la discovery/);
   assert.match(r.text, /Passe une excellente journée$/);
@@ -54,7 +54,7 @@ test("1er message : repli A1 si entreprise inconnue, blocs dans l'ordre", () => 
 
 test("1er message : A1 avec entreprise et ancienneté", () => {
   const r = assemble({ kind: "premier", hook: "A1", seniority: "PO3", discipline: "IA" }, DEFAULT_BLOCKS, { ...vars, entreprise: "Decathlon", anciennete: "3 ans" });
-  assert.match(r.text, /3 ans chez Decathlon, c'est peut-être/);
+  assert.match(r.text, /Ton parcours m'a tout de suite interpellé/);
   assert.match(r.text, /futurs leaders/);
 });
 
@@ -63,7 +63,7 @@ test("A4 et A5 : accroches sans variable", () => {
     const r = assemble({ kind: "premier", hook, seniority: "QA", discipline: "QA" }, DEFAULT_BLOCKS, vars);
     assert.deepEqual(r.missing, []);
   }
-  assert.match(assemble({ kind: "premier", hook: "A5", seniority: "PO2", discipline: "DIGITAL" }, DEFAULT_BLOCKS, vars).text, /^Bonjour Léa,\n\nTu avais marqué positivement WeFiiT/);
+  assert.match(assemble({ kind: "premier", hook: "A5", seniority: "PO2", discipline: "DIGITAL" }, DEFAULT_BLOCKS, vars).text, /^Bonjour Léa,\n\nJe me permets de te recontacter au nom de WeFiiT/);
 });
 
 test("relance 2 et invitation : argument de la discipline, invitation sous 300 caractères", () => {
@@ -92,10 +92,10 @@ test("campagne : accroche choisie par fiche, message vide = modèle de la banque
   const r = campaignMessage({ message: "", seniority: "PO2", discipline: "DATA" }, lea, DEFAULT_BLOCKS);
   assert.equal(r.kind, "premier");
   assert.equal(r.hook, "A5");
-  assert.match(r.text, /^Bonjour Léa,\n\nTu avais marqué positivement WeFiiT/);
+  assert.match(r.text, /^Bonjour Léa,\n\nJe me permets de te recontacter au nom de WeFiiT/);
   assert.deepEqual(r.missing, []);
   const own = campaignMessage({ message: "Hello {{prenom}} ! {{accroche}}", seniority: "PO2", discipline: "DATA" }, { ...lea, state: 0 }, DEFAULT_BLOCKS);
-  assert.equal(own.text, "Hello Léa ! Ton parcours de PO2 - Product Owner a retenu mon attention.");
+  assert.equal(own.text, "Hello Léa ! Ton parcours m'a tout de suite interpellé, et je me dis que WeFiiT pourrait vraiment te correspondre 🚀");
 });
 
 test("campagne : un candidat à relancer reçoit R1 ou R2", () => {
@@ -103,4 +103,18 @@ test("campagne : un candidat à relancer reçoit R1 ou R2", () => {
   assert.equal(r1.kind, "R1");
   const r2 = campaignMessage({ message: "x", seniority: "PO2", discipline: "IA" }, { ...lea, category: "a_relancer", nextContactTypeOf: 16 }, DEFAULT_BLOCKS);
   assert.match(r2.text, /🎯 des produits IA non déterministes/);
+});
+
+import { readFileSync } from "node:fs";
+const presets = JSON.parse(readFileSync(new URL("../scripts/messages-campagnes.json", import.meta.url), "utf8"));
+
+test("messages de campagne : aucune variable vide, signé Corentin, accroche selon l'historique", () => {
+  for (const [preset, message] of Object.entries(presets.campagnes)) {
+    for (const cand of [lea, { ...lea, state: 0 }, { ...lea, reasons: ["contacte_par_autre_ancien"] }]) {
+      const r = campaignMessage({ message, seniority: "PO2", discipline: "DIGITAL" }, cand, DEFAULT_BLOCKS);
+      assert.deepEqual(r.missing, [], preset);
+      assert.doesNotMatch(r.text, /\{\{|Mathilde|ravie|interpellée/, preset);
+      assert.match(r.text, /Corentin\nSales Lead chez @WeFiiT$/, preset);
+    }
+  }
 });
