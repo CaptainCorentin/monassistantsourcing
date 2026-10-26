@@ -46,8 +46,11 @@ responses.forEach((res, idx) => {
       company = rule.name;
       companyInTitle = rule.re.test(norm(a.title));
     }
-    const phone = [a.phone1, a.phone2].map(p => String(p || '').trim()).find(Boolean) || null;
-    if (params.requirePhone && !phone) { excludedCounts.sans_telephone++; continue; }
+    // Téléphone composable = au moins 8 chiffres (« nc », « - » ou un texte ne comptent pas).
+    const phones = [a.phone1, a.phone2].map(p => String(p || '').trim()).filter(Boolean);
+    const dialable = phones.find(p => p.replace(/\D/g, '').length >= 8) || null;
+    const phone = dialable || phones[0] || null;
+    if (params.requirePhone && !dialable) { excludedCounts.sans_telephone++; continue; }
     const linkedin = (a.socialNetworks || []).find(n =>
       /linkedin/i.test(String(n.network || '')) || /linkedin\.com/i.test(String(n.url || '')));
     (extra ? extras : found).push({

@@ -37,7 +37,7 @@ test("lister : PAD / TR, préfixe ciblé, téléphone requis, fiches ajoutées s
     cand(3, "PO3 - Lead PM", { phone1: "06" }),
     cand(4, "PO2 - PO sans tel")
   ] };
-  const extra = { data: [cand(9, "TR - ajouté à la main", { phone1: "07" })] };
+  const extra = { data: [cand(9, "TR - ajouté à la main", { phone1: "07 11 22 33 44" })] };
   const rows = run(src("list.js"), { input: [{ json: search }, { json: extra }], nodes: { "Préparer la recherche": prepared } }).map(r => r.json);
   assert.deepEqual(rows.map(r => r.id), ["9", "1"]);
   assert.equal(rows[0].addedToCampaign, true);
@@ -110,4 +110,16 @@ test("entreprises : mots-clés Boond en OU, nom confirmé dans la fiche", () => 
   const rows = run(src("list.js"), { input: [{ json: search }], nodes: { "Préparer la recherche": prepared } }).map(r => r.json);
   assert.deepEqual(rows.map(r => [r.id, r.company, r.companyInTitle]), [["1", "Wavestone", true], ["2", "BAcceptance", false], ["4", "TestIT", false], ["5", "Monsieur Guiz", false]]);
   assert.equal(rows[0].excludedCounts.hors_entreprise, 1);
+});
+
+test("cold call : seuls les numéros composables (8 chiffres et plus) comptent", () => {
+  const prepared = run(src("prepare.js"), { $json: { body: { requirePhone: true } } });
+  const search = { data: [
+    cand(1, "PO2 - A", { phone1: "nc" }),
+    cand(2, "PO2 - B", { phone1: "-", phone2: "+41 79 123 45 67" }),
+    cand(3, "PO2 - C", { phone1: "06 12" })
+  ] };
+  const rows = run(src("list.js"), { input: [{ json: search }], nodes: { "Préparer la recherche": prepared } }).map(r => r.json);
+  assert.deepEqual(rows.map(r => [r.id, r.phone]), [["2", "+41 79 123 45 67"]]);
+  assert.equal(rows[0].excludedCounts.sans_telephone, 2);
 });

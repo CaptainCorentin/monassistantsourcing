@@ -23,7 +23,9 @@ function queueOf(result: SearchResult, campaign: Campaign, isFlagged: (id: strin
   const wanted = wantedCategories(campaign);
   const segments = campaign.filters.segments;
   const now = Date.now();
-  const kept = result.candidates.filter(c => wanted.includes(c.category) && !isFlagged(c.id) && (c.addedToCampaign || inSegments(c, segments, now)));
+  // Cold call : uniquement les fiches avec un numéro composable, même ajoutées à la main.
+  const callable = (c: Candidate) => campaign.channel !== "phone" || telHref(c.phone) !== null;
+  const kept = result.candidates.filter(c => wanted.includes(c.category) && !isFlagged(c.id) && callable(c) && (c.addedToCampaign || inSegments(c, segments, now)));
   return [...kept.filter(c => c.addedToCampaign), ...kept.filter(c => !c.addedToCampaign)];
 }
 
@@ -95,7 +97,10 @@ export default function Session({ campaign, campaigns, blocks, isFlagged, record
   if (flaggedCount) excluded.push(["deja_traite", flaggedCount]);
   const wanted = wantedCategories(campaign);
   const outOfSegment = result.candidates.filter(c => !isFlagged(c.id) && wanted.includes(c.category)).length - queue.length;
-  if (outOfSegment > 0) excluded.push(["hors_segment", outOfSegment]);
+  const notCallable = campaign.channel === "phone"
+    ? result.candidates.filter(c => !isFlagged(c.id) && wanted.includes(c.category) && telHref(c.phone) === null).length : 0;
+  if (notCallable > 0) excluded.push(["sans_telephone", notCallable]);
+  if (outOfSegment - notCallable > 0) excluded.push(["hors_segment", outOfSegment - notCallable]);
   const header = (
     <div className="session-head">
       <div>
