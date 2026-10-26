@@ -213,7 +213,9 @@ function CandidateStep({ c, campaign, campaigns, blocks, recordFlag, advance, no
     advance("sent");
   }
 
+  // Cold call : tracé comme un contact (1er, 2e ou 3e) avec le texte « Cold call ».
   function called() {
+    logAction("Cold call");
     recordFlag(c.id, "reporte", 7).catch(() => {});
     closeMember();
     advance("sent");
@@ -337,11 +339,10 @@ function CandidateStep({ c, campaign, campaigns, blocks, recordFlag, advance, no
           </div>
         )}
         {phone && !tel && <p className="hint" style={{ margin: 0 }}>Pas de téléphone exploitable dans Boond : message LinkedIn à la place.</p>}
-        {!(phone && tel) && (
-          <p className="hint" style={{ margin: 0 }}>
-            L&apos;envoi crée l&apos;action « {ACTION_LABELS[c.nextContactTypeOf === 15 || c.nextContactTypeOf === 16 ? c.nextContactTypeOf : 131]} » dans Boond avec ce message : pas besoin de l&apos;extension.
-          </p>
-        )}
+        <p className="hint" style={{ margin: 0 }}>
+          {phone && tel ? "« Appel passé » crée" : "L'envoi crée"} l&apos;action « {ACTION_LABELS[c.nextContactTypeOf === 15 || c.nextContactTypeOf === 16 ? c.nextContactTypeOf : 131]} » dans Boond
+          {phone && tel ? " avec le texte « Cold call »" : " avec ce message"} : pas besoin de l&apos;extension.
+        </p>
         <p className="hint" style={{ margin: 0 }}>Ctrl + Entrée : {phone && tel ? "appel passé" : "envoyer"} · → : passer</p>
       </div>
     </article>
