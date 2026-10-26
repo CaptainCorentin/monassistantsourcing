@@ -41,20 +41,20 @@ test("type de message par défaut", () => {
   assert.equal(defaultMessageKind("a_relancer", 16), "R2");
 });
 
-const vars = { prenom: "Léa", nom: "Martin", titre: "Product Owner", ville: "Paris", entreprise: "", anciennete: "", annee_process: "" };
+const vars = { prenom: "Léa", nom: "Martin", titre: "Product Owner", poste: "Product Owner", ville: "Paris", entreprise: "", anciennete: "", annee_process: "" };
 
 test("1er message : repli A1 si entreprise inconnue, blocs dans l'ordre", () => {
   const r = assemble({ kind: "premier", hook: "A1", seniority: "PO2", discipline: "DATA" }, DEFAULT_BLOCKS, vars);
   assert.deepEqual(r.missing, []);
-  assert.match(r.text, /^Bonjour Léa,\n\nTon parcours m'a tout de suite interpellé, et je me dis que WeFiiT pourrait vraiment te correspondre 🚀\n\nChez WeFiiT, on ne fait que du Product Management/);
+  assert.match(r.text, /^Bonjour Léa,\n\nTon parcours de Product Owner m'a tout de suite interpellé, et je suis à peu près sûr que WeFiiT pourrait te correspondre.\n\nChez WeFiiT, on ne fait que du Product Management/);
   assert.match(r.text, /Data as a Product\. Et si demain/);
   assert.match(r.text, /approfondir la discovery/);
   assert.match(r.text, /Passe une excellente journée$/);
 });
 
 test("1er message : A1 avec entreprise et ancienneté", () => {
-  const r = assemble({ kind: "premier", hook: "A1", seniority: "PO3", discipline: "IA" }, DEFAULT_BLOCKS, { ...vars, entreprise: "Decathlon", anciennete: "3 ans" });
-  assert.match(r.text, /Ton parcours m'a tout de suite interpellé/);
+  const r = assemble({ kind: "premier", hook: "A1", seniority: "PO3", discipline: "IA" }, DEFAULT_BLOCKS, { ...vars, poste: "Lead PM", entreprise: "Decathlon", anciennete: "3 ans" });
+  assert.match(r.text, /Ton parcours de Lead PM m'a tout de suite interpellé/);
   assert.match(r.text, /futurs leaders/);
 });
 
@@ -63,12 +63,13 @@ test("A4 et A5 : accroches sans variable", () => {
     const r = assemble({ kind: "premier", hook, seniority: "QA", discipline: "QA" }, DEFAULT_BLOCKS, vars);
     assert.deepEqual(r.missing, []);
   }
-  assert.match(assemble({ kind: "premier", hook: "A5", seniority: "PO2", discipline: "DIGITAL" }, DEFAULT_BLOCKS, vars).text, /^Bonjour Léa,\n\nJe me permets de te recontacter au nom de WeFiiT/);
+  assert.match(assemble({ kind: "premier", hook: "A5", seniority: "PO2", discipline: "DIGITAL" }, DEFAULT_BLOCKS, vars).text, /^Bonjour Léa,\n\nOn se souvient bien de ton profil chez WeFiiT/);
 });
 
 test("relance 2 et invitation : argument de la discipline, invitation sous 300 caractères", () => {
   const r2 = assemble({ kind: "R2", hook: "A1", seniority: "PO2", discipline: "BUILD" }, DEFAULT_BLOCKS, vars);
-  assert.match(r2.text, /🎯 des PM qui buildent/);
+  assert.match(r2.text, /des PM qui buildent : prototypes/);
+  assert.match(r2.text, /✅ ok pour 15 min/);
   for (const d of ["DIGITAL", "DATA", "IA", "BUILD", "QA"]) {
     const inv = assemble({ kind: "invitation", hook: "A1", seniority: "PO2", discipline: d }, DEFAULT_BLOCKS, { ...vars, prenom: "Jean-Christophe" });
     assert.ok([...inv.text].length <= 300, `${d} : ${[...inv.text].length}`);
@@ -92,17 +93,17 @@ test("campagne : accroche choisie par fiche, message vide = modèle de la banque
   const r = campaignMessage({ message: "", seniority: "PO2", discipline: "DATA" }, lea, DEFAULT_BLOCKS);
   assert.equal(r.kind, "premier");
   assert.equal(r.hook, "A5");
-  assert.match(r.text, /^Bonjour Léa,\n\nJe me permets de te recontacter au nom de WeFiiT/);
+  assert.match(r.text, /^Bonjour Léa,\n\nOn se souvient bien de ton profil chez WeFiiT/);
   assert.deepEqual(r.missing, []);
   const own = campaignMessage({ message: "Hello {{prenom}} ! {{accroche}}", seniority: "PO2", discipline: "DATA" }, { ...lea, state: 0 }, DEFAULT_BLOCKS);
-  assert.equal(own.text, "Hello Léa ! Ton parcours m'a tout de suite interpellé, et je me dis que WeFiiT pourrait vraiment te correspondre 🚀");
+  assert.equal(own.text, "Hello Léa ! Ton parcours de Product Owner m'a tout de suite interpellé, et je suis à peu près sûr que WeFiiT pourrait te correspondre.");
 });
 
 test("campagne : un candidat à relancer reçoit R1 ou R2", () => {
   const r1 = campaignMessage({ message: "x", seniority: "PO2", discipline: "IA" }, { ...lea, category: "a_relancer", nextContactTypeOf: 15 }, DEFAULT_BLOCKS);
   assert.equal(r1.kind, "R1");
   const r2 = campaignMessage({ message: "x", seniority: "PO2", discipline: "IA" }, { ...lea, category: "a_relancer", nextContactTypeOf: 16 }, DEFAULT_BLOCKS);
-  assert.match(r2.text, /🎯 des produits IA non déterministes/);
+  assert.match(r2.text, /des produits IA non déterministes/);
 });
 
 import { readFileSync } from "node:fs";
@@ -110,11 +111,27 @@ const presets = JSON.parse(readFileSync(new URL("../scripts/messages-campagnes.j
 
 test("messages de campagne : aucune variable vide, signé Corentin, accroche selon l'historique", () => {
   for (const [preset, message] of Object.entries(presets.campagnes)) {
-    for (const cand of [lea, { ...lea, state: 0 }, { ...lea, reasons: ["contacte_par_autre_ancien"] }]) {
+    for (const cand of [{ ...lea, company: "Wavestone" }, { ...lea, state: 0, company: "Adone" }, { ...lea, reasons: ["contacte_par_autre_ancien"], company: "Solutec" }]) {
       const r = campaignMessage({ message, seniority: "PO2", discipline: "DIGITAL" }, cand, DEFAULT_BLOCKS);
       assert.deepEqual(r.missing, [], preset);
-      assert.doesNotMatch(r.text, /\{\{|Mathilde|ravie|interpellée/, preset);
+      assert.doesNotMatch(r.text, /\{\{|Mathilde|ravie|interpellée|PO2 - /, preset);
       assert.match(r.text, /Corentin\nSales Lead chez @WeFiiT$/, preset);
+      // Trame en 10 points : 1re ligne avec le prénom, direct, chiffres, évolution, filtre, FOMO, CTA doux.
+      assert.match(r.text, /^Léa, /, `${preset} : objet`);
+      assert.match(r.text, /droit au but/, `${preset} : direct`);
+      assert.match(r.text, /top 3/i, `${preset} : chiffres`);
+      assert.match(r.text, /📈/, `${preset} : évolution`);
+      assert.match(r.text, /on ne sera pas faits l'un pour l'autre|dis-le-moi simplement/, `${preset} : filtre`);
+      assert.match(r.text, /maintenant/, `${preset} : FOMO`);
+      assert.match(r.text, /15 min/, `${preset} : CTA`);
     }
   }
+});
+
+test("poste : titre Boond sans code interne", async () => {
+  const { posteFromTitle } = await import("../lib/messages.ts");
+  assert.equal(posteFromTitle("PO2 - Product Owner @Adone"), "Product Owner @Adone");
+  assert.equal(posteFromTitle("QA1+ - QA Engineer"), "QA Engineer");
+  assert.equal(posteFromTitle("PO3 Adone"), "Adone");
+  assert.equal(posteFromTitle("Head of Product"), "Head of Product");
 });

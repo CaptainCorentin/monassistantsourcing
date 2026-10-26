@@ -57,50 +57,96 @@ Titre ambigu : le bloc par défaut est appliqué et la fiche le signale. Entrepr
 
 **Appel à l'action, commun :** Si ça te parle, je serais ravi d'en échanger par téléphone : serais-tu disponible cette semaine ou la semaine prochaine ? / Passe une excellente journée
 
-## Relances
+## Relances et note d'invitation
 
-| Code | Action Boond | Texte |
-|---|---|---|
-| R1 | 15 (J+7 à J+30) | Hello {{prenom}}, le suspense est insoutenable… as-tu bien reçu mon dernier message ? Promis, je ne me vexe pas si la réponse est non 😉 |
-| R2 | 16 (après R1) | Hello {{prenom}}, as-tu pu lire mon précédent message ? En bref, chez WeFiiT : 🎯 {{argument_metier}} 🎯 tu choisis tes missions, sans practice imposée 🎯 tu co-construis l'entreprise avec plus de 115 WeFiiTers. On se donne 15 min cette semaine ? |
+R1 (action 15), R2 (action 16) et la note d'invitation (INV, 300 caractères max, compteur dans l'outil) : voir la banque dans la section trame Blendy ci-dessous.
 
-## Note d'invitation LinkedIn (300 caractères max)
+## Messages de campagne : trame Blendy (26/10)
 
-> Bonjour {{prenom}}, je suis Corentin, recruteur chez WeFiiT, cabinet 100 % Product Management. Chez nous : {{argument_metier}}. Pas de practice, chacun choisit ses missions. Ouvert à en discuter ?
+100 % des messages suivent la trame en 10 points. Source unique : `scripts/messages-campagnes.json` (en base dans `campaigns.message` et `message_blocks`, migration 0014). `rules/messages.test.mjs` vérifie la trame sur chaque message de campagne.
 
-Longueur avec un prénom de 15 lettres : 228 (D-QA) à 264 caractères (D-DIGITAL). L'outil affiche un compteur et alerte au-delà de 300.
+| Point | Où dans le message |
+|---|---|
+| 1. Objet impactant | 1re ligne, avec `{{prenom}}` (c'est l'aperçu LinkedIn) |
+| 2. Ultra-personnalisation | `{{accroche}}` selon l'historique, `{{poste}}` (titre Boond sans code PO1/QA…), `{{entreprise}}` en campagne conseil |
+| 3. Humour ou compliment | accroches et 1re ligne |
+| 4. Être direct | « Je vais droit au but » |
+| 5. Aspirationnel | « devenir LA référence du Product à l'ère de l'IA » |
+| 6. Objectifs chiffrés | top 3, plus de 120 WeFiiTers, plus de 400 missions, 2 sessions par semaine, 2 000 € de formation |
+| 7. Perspectives d'évolution | puce 📈 |
+| 8. Phrase filtre | « on ne sera pas faits l'un pour l'autre 😉 » |
+| 9. FOMO | « les équipes se montent maintenant » |
+| 10. CTA qui ne fait pas peur | 15 min de café virtuel cette semaine ou la suivante, sans engagement |
 
-## Messages de campagne (21/10)
+R1, R2 et la note d'invitation (300 caractères) sont en version compacte : ils gardent objet, personnalisation, chiffres, filtre et CTA. R2 propose une réponse par emoji (✅⏳❌).
 
-Réécrits à partir des messages de Mathilde, signés Corentin, avec le virage IA (offres Data & IA, Claude Entreprise pour 100 % des WeFiiTers, communauté de builders, 2 sessions « PM augmenté » par semaine). Source unique : `scripts/messages-campagnes.json` (en base dans `campaigns.message` et `message_blocks`). `{{accroche}}` est choisie fiche par fiche selon l'historique.
+À valider avant envoi en masse : les chiffres (120 WeFiiTers, 400 missions, 50 mentors, 2 000 €) et l'affirmation « les équipes Data & IA se montent maintenant ».
 
 | Accroche | Cas | Texte |
 |---|---|---|
-| A1 | Jamais contacté | Ton parcours m'a tout de suite interpellé, et je me dis que WeFiiT pourrait vraiment te correspondre 🚀 |
-| A1-REPLI | Repli de A1 | Ton parcours m'a tout de suite interpellé, et je me dis que WeFiiT pourrait vraiment te correspondre 🚀 |
-| A2 | Contacté par un collègue (+60 j) | Je crois que tu as déjà reçu quelques messages de la part de mes collègues chez WeFiiT, mais ton profil m'a vraiment interpellé et je me suis dit que ça valait le coup de te recontacter 🙂 |
-| A3 | Mon message sans réponse (+6 mois) | Je me permets de revenir vers toi : mon dernier message est sûrement arrivé au mauvais moment, et beaucoup de choses ont bougé chez WeFiiT depuis 🙂 |
-| A4 | Déjà échangé avec moi | Je me permets de te recontacter : je me souviens bien de ton profil et de nos échanges, et je me suis dit que ce serait sympa de reprendre contact 🙂 |
-| A5 | Déjà échangé avec un collègue | Je me permets de te recontacter au nom de WeFiiT : on se souvient bien de ton profil, et on s'est dit que ce serait sympa de reprendre contact 🙂 |
+| A1 | Jamais contacté | Ton parcours de {{poste}} m'a tout de suite interpellé, et je suis à peu près sûr que WeFiiT pourrait te correspondre. |
+| A1-REPLI | Repli de A1 | Ton parcours de {{poste}} m'a tout de suite interpellé, et je suis à peu près sûr que WeFiiT pourrait te correspondre. |
+| A2 | Contacté par un collègue (+60 j) | Tu as sans doute déjà reçu un message de mes collègues : s'ils ont insisté, c'est que ton profil de {{poste}} le vaut bien 😄 |
+| A3 | Mon message sans réponse (+6 mois) | Mon dernier message est sûrement arrivé au mauvais moment (ça arrive aux meilleurs), mais ton profil de {{poste}} m'a trop marqué pour en rester là 😄 |
+| A4 | Déjà échangé avec moi | Je garde un très bon souvenir de nos échanges, et ton profil de {{poste}} m'est revenu en tête en préparant nos prochaines missions. |
+| A5 | Déjà échangé avec un collègue | On se souvient bien de ton profil chez WeFiiT, et ton parcours de {{poste}} m'est revenu en tête en préparant nos prochaines missions. |
+
+### Banque
+
+#### R1
+
+```
+{{prenom}}, le suspense est insoutenable 😄 As-tu vu passer mon message ?
+
+En deux mots : un cabinet 100 % Product dans le top 3 en France, plus de 120 WeFiiTers, {{argument_metier}}, et de vraies perspectives (Lead PM, référent Data & IA).
+
+On constitue en ce moment les équipes de nos offres Data & IA. Si ce n'est pas le bon moment, dis-le-moi simplement, je ne me vexe pas 😉
+
+Sinon, 15 min de café virtuel cette semaine ou la suivante ?
+
+Corentin
+```
+
+#### R2
+
+```
+{{prenom}}, dernier message promis (avant de passer en mode spam 😄)
+
+Toujours convaincu que ton profil de {{poste}} a sa place chez nous : top 3 du Product en France, plus de 120 WeFiiTers, 100 % sur Claude Entreprise, {{argument_metier}}, et une évolution vers Lead PM ou référent Data & IA.
+
+Les équipes Data & IA se montent maintenant. Pour nous faire gagner du temps, un emoji suffit :
+✅ ok pour 15 min cette semaine ou la suivante
+⏳ pas le bon timing
+❌ pas un sujet pour moi
+
+Corentin
+```
+
+#### INV
+
+```
+{{prenom}}, ton parcours de {{poste}} m'a interpellé 👀 WeFiiT : top 3 du Product en France, 100 % des équipes sur Claude, offres Data & IA en lancement. Pas pour toi si tu veux juste dérouler un backlog 😉 15 min pour en parler ?
+```
 
 ### mon_vivier
 
 ```
-Hello {{prenom}} 👋
+{{prenom}}, question directe : et si ton prochain chapitre Product se jouait avec l'IA ? 🤖
 
 {{accroche}}
 
-WeFiiT, c'est un modèle hybride entre cabinet de conseil et startup, aujourd'hui dans le top 3 des acteurs du Product Management en France, avec l'ambition d'en devenir LA référence.
+Je vais droit au but : WeFiiT, c'est un cabinet 100 % Product Management, dans le top 3 en France, avec plus de 120 WeFiiTers et plus de 400 missions chez Louis Vuitton, Chanel, Accor, FDJ ou la SNCF. Notre objectif : devenir LA référence du Product à l'ère de l'IA.
 
-On réunit une communauté de Product Managers & Product Owners passionnés, qui accompagnent nos clients (Louis Vuitton, Chanel, Accor, FDJ, SNCF…) sur des missions à fort impact : discovery, delivery, stratégie produit.
+🤖 100 % des WeFiiTers sur Claude Entreprise, et une communauté de builders
+🎓 2 sessions de formation « PM augmenté » par semaine, 2 000 € de formation par an
+📈 La suite pour toi : Lead PM, coach ou référent Data & IA, avec plus de 50 mentors pour t'y emmener
 
-Et le métier change vite avec l'IA : on développe nos offres Data & IA chez nos clients, 100 % des WeFiiTers ont Claude Entreprise, on anime une communauté de builders et on organise 2 sessions de formation « PM augmenté » chaque semaine 🤖
+Par contre, si tu cherches à dérouler un backlog sans te poser de questions, on ne sera pas faits l'un pour l'autre 😉
 
-Si tu as envie d'un projet ambitieux, dans un collectif exigeant mais ultra bienveillant, je serais ravi d'en discuter avec toi 🙂
+On lance en ce moment nos offres Data & IA chez nos clients, et c'est maintenant que se constituent les équipes.
 
-Tu serais dispo cette semaine ou la semaine prochaine pour un échange rapide ?
+Partant pour 15 min de café virtuel cette semaine ou la suivante ? Sans engagement, promis 🙂
 
-Passe une belle journée !
 Corentin
 Sales Lead chez @WeFiiT
 ```
@@ -108,21 +154,22 @@ Sales Lead chez @WeFiiT
 ### conseil_generaliste
 
 ```
-Hello {{prenom}} 👋
+{{prenom}}, et si tu passais du conseil généraliste au conseil 100 % Product ? 🚀
 
-{{accroche}}
+{{accroche}} Ton expérience chez {{entreprise}}, c'est exactement le bagage qu'on recherche.
 
-Tu connais déjà le conseil. Chez WeFiiT, on a fait un choix : ne faire que du Product Management. Un modèle hybride entre cabinet de conseil et startup, dans le top 3 des acteurs du Product en France, avec l'ambition d'en devenir LA référence 🚀
+Je vais droit au but : chez WeFiiT, on ne fait que du Product Management. Top 3 en France, plus de 120 WeFiiTers, plus de 400 missions chez Louis Vuitton, Chanel, Accor, FDJ ou la SNCF, et un objectif : devenir LA référence du Product à l'ère de l'IA.
 
-Concrètement, tu restes sur ton métier : pas de practice imposée, tu choisis tes missions, chez des clients comme Louis Vuitton, Chanel, Accor, FDJ ou la SNCF (discovery, delivery, stratégie produit).
+🧭 Pas de practice imposée : tu choisis tes missions
+🤖 100 % des WeFiiTers sur Claude Entreprise, 2 sessions « PM augmenté » par semaine
+📈 La suite pour toi : Lead PM, coach ou référent Data & IA, avec plus de 50 mentors
 
-Et comme le Product change vite avec l'IA, on investit : nos offres Data & IA chez nos clients, Claude Entreprise pour 100 % des WeFiiTers, une communauté de builders et 2 sessions de formation « PM augmenté » par semaine 🤖
+Par contre, si tu veux garder un pied dans tous les sujets (SI, finance, transfo…), on ne sera pas faits l'un pour l'autre 😉
 
-Si tu as envie d'un projet ambitieux, dans un collectif exigeant mais ultra bienveillant, je serais ravi d'en discuter avec toi 🙂
+Nos offres Data & IA démarrent chez nos clients : les équipes se montent maintenant.
 
-Tu serais dispo cette semaine ou la semaine prochaine pour un échange rapide ?
+Partant pour 15 min de café virtuel cette semaine ou la suivante ? Sans engagement, promis 🙂
 
-Passe une belle journée !
 Corentin
 Sales Lead chez @WeFiiT
 ```
@@ -130,24 +177,22 @@ Sales Lead chez @WeFiiT
 ### conseil_specialiste
 
 ```
-Hello {{prenom}} 👋
+{{prenom}}, entre gens du Product, je te dois un message honnête 😉
 
-{{accroche}}
+{{accroche}} Ton expérience chez {{entreprise}}, je la connais : pas besoin de te refaire le pitch du métier.
 
-Tu connais déjà le conseil en Product, donc je ne vais pas te refaire le pitch du métier 😉 Ce qui fait la différence chez WeFiiT aujourd'hui, c'est la façon dont on prend le virage de l'IA :
+Je vais droit au but : ce qui fait la différence chez WeFiiT aujourd'hui, c'est le virage de l'IA. Top 3 du Product en France, plus de 120 WeFiiTers, et un objectif : devenir LA référence du Product à l'ère de l'IA.
 
-🤖 Claude Entreprise pour 100 % des WeFiiTers, et une communauté de builders
-🎓 2 sessions de formation « PM augmenté » chaque semaine
-📊 Des offres Data & IA qu'on développe chez nos clients (Louis Vuitton, Chanel, Accor, FDJ, SNCF…)
-🧭 Pas de practice imposée : tu choisis tes missions
+🤖 100 % des WeFiiTers sur Claude Entreprise, et une communauté de builders
+🎓 2 sessions « PM augmenté » par semaine, 2 000 € de formation par an
+📈 La suite pour toi : porter nos offres Data & IA, devenir Lead PM ou coach
 
-On est dans le top 3 des acteurs du Product Management en France, avec l'ambition d'en devenir LA référence 🚀
+Par contre, si tu cherches un cabinet où l'IA reste un sujet de slides, on ne sera pas faits l'un pour l'autre 😉
 
-Si ça te parle, je serais ravi d'en discuter avec toi 🙂
+Nos offres Data & IA démarrent chez Louis Vuitton, Chanel, Accor, FDJ ou la SNCF : les équipes se montent maintenant.
 
-Tu serais dispo cette semaine ou la semaine prochaine pour un échange rapide ?
+Partant pour 15 min de café virtuel cette semaine ou la suivante ? Sans engagement, promis 🙂
 
-Passe une belle journée !
 Corentin
 Sales Lead chez @WeFiiT
 ```
@@ -155,19 +200,22 @@ Sales Lead chez @WeFiiT
 ### qa_conseil
 
 ```
-Hello {{prenom}} 👋
+{{prenom}}, une QA qui pèse sur le Produit (et pas seulement sur les tests), ça te parle ? 🎯
 
-{{accroche}}
+{{accroche}} Ton expérience chez {{entreprise}}, c'est exactement le bagage qu'on recherche.
 
-Chez WeFiiT, la qualité fait partie du Produit : nos QA sont intégrés aux squads, impliqués dès la conception et premiers utilisateurs des features, chez des clients comme Louis Vuitton, Chanel, Accor, FDJ ou la SNCF 🚀
+Je vais droit au but : chez WeFiiT, nos QA sont intégrés aux squads, impliqués dès la conception, et premiers utilisateurs des features, chez Louis Vuitton, Chanel, Accor, FDJ ou la SNCF. Top 3 du Product en France, plus de 120 WeFiiTers.
 
-Et avec l'IA, le métier change aussi pour la QA : on développe nos offres Data & IA, 100 % des WeFiiTers ont Claude Entreprise, on anime une communauté de builders et on organise 2 sessions de formation « PM augmenté » par semaine 🤖
+🤖 100 % des WeFiiTers sur Claude Entreprise, et une communauté de builders
+🎓 2 sessions « PM augmenté » par semaine, 2 000 € de formation par an
+📈 La suite pour toi : test lead, automatisation, stratégie de test ou PO
 
-Un modèle hybride entre cabinet de conseil et startup, dans le top 3 des acteurs du Product Management en France : si tu as envie d'un projet ambitieux, dans un collectif exigeant mais ultra bienveillant, je serais ravi d'en discuter avec toi 🙂
+Par contre, si tu préfères rester en fin de chaîne à dérouler des cahiers de recette, on ne sera pas faits l'un pour l'autre 😉
 
-Tu serais dispo cette semaine ou la semaine prochaine pour un échange rapide ?
+On lance nos offres Data & IA, et la qualité des produits IA est un sujet neuf : c'est maintenant que ça se joue.
 
-Passe une belle journée !
+Partant pour 15 min de café virtuel cette semaine ou la suivante ? Sans engagement, promis 🙂
+
 Corentin
 Sales Lead chez @WeFiiT
 ```
@@ -175,17 +223,22 @@ Sales Lead chez @WeFiiT
 ### prise_actu
 
 ```
-Hello {{prenom}} 👋
+{{prenom}}, ça fait un moment : je prends de tes nouvelles 👋
 
-Je me permets de te recontacter au nom de WeFiiT : on se souvient bien de ton profil, et on s'est dit que ce serait sympa de reprendre contact 🙂
+{{accroche}}
 
-J'aimerais prendre de tes nouvelles, échanger sur l'actu Produit (l'IA rebat pas mal les cartes en ce moment) et voir où tu en es dans ton parcours pro.
+Je vais droit au but : l'IA rebat les cartes du Product, et WeFiiT a pris le virage. Top 3 en France, plus de 120 WeFiiTers, plus de 400 missions chez Louis Vuitton, Chanel, Accor, FDJ ou la SNCF, et un objectif : devenir LA référence du Product à l'ère de l'IA.
 
-De notre côté, WeFiiT continue de grandir avec des clients comme Louis Vuitton, Chanel, Accor, FDJ ou la SNCF, et prend le virage de l'IA : offres Data & IA, Claude Entreprise pour 100 % des WeFiiTers, une communauté de builders et 2 sessions de formation « PM augmenté » par semaine 🚀
+🤖 100 % des WeFiiTers sur Claude Entreprise, et une communauté de builders
+🎓 2 sessions « PM augmenté » par semaine
+📈 Des perspectives concrètes : Lead PM, coach, référent Data & IA
 
-Si tu es partant pour un échange rapide cette semaine ou la semaine prochaine, je serais ravi d'en discuter avec toi !
+Si tu es pleinement épanoui là où tu es, dis-le-moi simplement : je ne t'embêterai pas 😉
 
-Très belle journée à toi,
+Nos offres Data & IA démarrent en ce moment, et les équipes se montent maintenant.
+
+Partant pour 15 min de café virtuel cette semaine ou la suivante, juste pour échanger sur l'actu Produit ? 🙂
+
 Corentin
 Sales Lead chez @WeFiiT
 ```
@@ -193,23 +246,22 @@ Sales Lead chez @WeFiiT
 ### jamais_process
 
 ```
-Hello {{prenom}} 👋
+{{prenom}}, on ne s'est jamais vraiment parlé, et c'est sans doute une erreur de notre part 😄
 
 {{accroche}}
 
-On n'a encore jamais pris le temps d'échanger vraiment, et je pense que c'est le bon moment : le Product change vite avec l'IA, et WeFiiT a pris le virage 🚀
+Je vais droit au but : le Product change vite avec l'IA, et c'est le bon moment pour en parler. WeFiiT, c'est le top 3 du Product en France, plus de 120 WeFiiTers, plus de 400 missions chez Louis Vuitton, Chanel, Accor, FDJ ou la SNCF, et un objectif : devenir LA référence du Product à l'ère de l'IA.
 
-👉 Un modèle hybride entre cabinet de conseil et startup, dans le top 3 des acteurs du Product Management en France
-👉 Des missions à fort impact chez Louis Vuitton, Chanel, Accor, FDJ, SNCF… et nos offres Data & IA
-👉 Claude Entreprise pour 100 % des WeFiiTers, une communauté de builders et 2 sessions de formation « PM augmenté » par semaine
+🤖 100 % des WeFiiTers sur Claude Entreprise, et une communauté de builders
+🎓 2 sessions « PM augmenté » par semaine, 2 000 € de formation par an
+📈 La suite pour toi : Lead PM, coach ou référent Data & IA, avec plus de 50 mentors
 
-Si tu as envie d'un projet ambitieux, dans un collectif exigeant mais ultra bienveillant, je serais ravi d'en discuter avec toi 🙂
+Par contre, si tu cherches à dérouler un backlog sans te poser de questions, on ne sera pas faits l'un pour l'autre 😉
 
-Tu serais dispo cette semaine ou la semaine prochaine pour un échange rapide ?
+Nos offres Data & IA démarrent chez nos clients : les équipes se montent maintenant.
 
-Passe une belle journée !
+Partant pour 15 min de café virtuel cette semaine ou la suivante ? Sans engagement, promis 🙂
+
 Corentin
 Sales Lead chez @WeFiiT
 ```
-
-Les relances (R1, R2) restent celles de la banque.

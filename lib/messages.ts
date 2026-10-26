@@ -54,12 +54,12 @@ export const KIND_LABELS: Record<BlockKind, string> = {
 };
 
 export const DEFAULT_BLOCKS: Block[] = [
-  { code: "A1", kind: "accroche", label: "A1 · Jamais contacté", body: "Ton parcours m'a tout de suite interpellé, et je me dis que WeFiiT pourrait vraiment te correspondre 🚀" },
-  { code: "A1-REPLI", kind: "accroche", label: "A1 · Si entreprise ou ancienneté inconnue", body: "Ton parcours m'a tout de suite interpellé, et je me dis que WeFiiT pourrait vraiment te correspondre 🚀" },
-  { code: "A2", kind: "accroche", label: "A2 · Contacté par un collègue (+60 j)", body: "Je crois que tu as déjà reçu quelques messages de la part de mes collègues chez WeFiiT, mais ton profil m'a vraiment interpellé et je me suis dit que ça valait le coup de te recontacter 🙂" },
-  { code: "A3", kind: "accroche", label: "A3 · Sans réponse depuis 6 mois", body: "Je me permets de revenir vers toi : mon dernier message est sûrement arrivé au mauvais moment, et beaucoup de choses ont bougé chez WeFiiT depuis 🙂" },
-  { code: "A4", kind: "accroche", label: "A4 · Déjà échangé avec toi (LN+, Vivier +++)", body: "Je me permets de te recontacter : je me souviens bien de ton profil et de nos échanges, et je me suis dit que ce serait sympa de reprendre contact 🙂" },
-  { code: "A5", kind: "accroche", label: "A5 · Déjà échangé avec un collègue (LN+, Vivier +++)", body: "Je me permets de te recontacter au nom de WeFiiT : on se souvient bien de ton profil, et on s'est dit que ce serait sympa de reprendre contact 🙂" },
+  { code: "A1", kind: "accroche", label: "A1 · Jamais contacté", body: "Ton parcours de {{poste}} m'a tout de suite interpellé, et je suis à peu près sûr que WeFiiT pourrait te correspondre." },
+  { code: "A1-REPLI", kind: "accroche", label: "A1 · Si entreprise ou ancienneté inconnue", body: "Ton parcours de {{poste}} m'a tout de suite interpellé, et je suis à peu près sûr que WeFiiT pourrait te correspondre." },
+  { code: "A2", kind: "accroche", label: "A2 · Contacté par un collègue (+60 j)", body: "Tu as sans doute déjà reçu un message de mes collègues : s'ils ont insisté, c'est que ton profil de {{poste}} le vaut bien 😄" },
+  { code: "A3", kind: "accroche", label: "A3 · Sans réponse depuis 6 mois", body: "Mon dernier message est sûrement arrivé au mauvais moment (ça arrive aux meilleurs), mais ton profil de {{poste}} m'a trop marqué pour en rester là 😄" },
+  { code: "A4", kind: "accroche", label: "A4 · Déjà échangé avec toi (LN+, Vivier +++)", body: "Je garde un très bon souvenir de nos échanges, et ton profil de {{poste}} m'est revenu en tête en préparant nos prochaines missions." },
+  { code: "A5", kind: "accroche", label: "A5 · Déjà échangé avec un collègue (LN+, Vivier +++)", body: "On se souvient bien de ton profil chez WeFiiT, et ton parcours de {{poste}} m'est revenu en tête en préparant nos prochaines missions." },
   { code: "POS-PO12", kind: "positionnement", label: "PO1 / PO2", body: "Chez WeFiiT, on ne fait que du Product Management, et on cherche les meilleurs PM et PO de Paris pour devenir la référence du métier en France." },
   { code: "POS-PO3", kind: "positionnement", label: "PO3", body: "Chez WeFiiT, on cherche les futurs leaders du Product Management digital, Data et IA : des profils qui font grandir nos clients autant que l'équipe." },
   { code: "POS-QA", kind: "positionnement", label: "QA", body: "Chez WeFiiT, on cherche les meilleurs QA de Paris : des stratèges de la qualité produit, impliqués dès la conception (shift left), pas de simples exécutants de tests." },
@@ -79,12 +79,17 @@ export const DEFAULT_BLOCKS: Block[] = [
   { code: "DRV-PO3", kind: "driver", label: "PO3", body: "Tu pourras accompagner tes pairs dans leur carrière, coacher nos clients et peser sur la stratégie interne de WeFiiT." },
   { code: "DRV-QA", kind: "driver", label: "QA", body: "Tu pourras évoluer vers l'automatisation, la stratégie de test ou un rôle de PO, sur des missions 100 % QA et agiles." },
   { code: "CTA", kind: "cta", label: "Appel à l'action", body: "Si ça te parle, je serais ravi d'en échanger par téléphone : serais-tu disponible cette semaine ou la semaine prochaine ?\n\nPasse une excellente journée" },
-  { code: "R1", kind: "relance", label: "Relance 1 (2e contact)", body: "Hello {{prenom}}, le suspense est insoutenable… as-tu bien reçu mon dernier message ? Promis, je ne me vexe pas si la réponse est non 😉" },
-  { code: "R2", kind: "relance", label: "Relance 2 (3e contact)", body: "Hello {{prenom}}, as-tu pu lire mon précédent message ? En bref, chez WeFiiT :\n🎯 {{argument_metier}}\n🎯 tu choisis tes missions, sans practice imposée\n🎯 tu co-construis l'entreprise avec plus de 115 WeFiiTers\nOn se donne 15 min cette semaine ?" },
-  { code: "INV", kind: "invitation", label: "Note d'invitation (300 caractères)", body: "Bonjour {{prenom}}, je suis Corentin, recruteur chez WeFiiT, cabinet 100 % Product Management. Chez nous : {{argument_metier}}. Pas de practice, chacun choisit ses missions. Ouvert à en discuter ?" }
+  { code: "R1", kind: "relance", label: "Relance 1 (2e contact)", body: "{{prenom}}, le suspense est insoutenable 😄 As-tu vu passer mon message ?\n\nEn deux mots : un cabinet 100 % Product dans le top 3 en France, plus de 120 WeFiiTers, {{argument_metier}}, et de vraies perspectives (Lead PM, référent Data & IA).\n\nOn constitue en ce moment les équipes de nos offres Data & IA. Si ce n'est pas le bon moment, dis-le-moi simplement, je ne me vexe pas 😉\n\nSinon, 15 min de café virtuel cette semaine ou la suivante ?\n\nCorentin" },
+  { code: "R2", kind: "relance", label: "Relance 2 (3e contact)", body: "{{prenom}}, dernier message promis (avant de passer en mode spam 😄)\n\nToujours convaincu que ton profil de {{poste}} a sa place chez nous : top 3 du Product en France, plus de 120 WeFiiTers, 100 % sur Claude Entreprise, {{argument_metier}}, et une évolution vers Lead PM ou référent Data & IA.\n\nLes équipes Data & IA se montent maintenant. Pour nous faire gagner du temps, un emoji suffit :\n✅ ok pour 15 min cette semaine ou la suivante\n⏳ pas le bon timing\n❌ pas un sujet pour moi\n\nCorentin" },
+  { code: "INV", kind: "invitation", label: "Note d'invitation (300 caractères)", body: "{{prenom}}, ton parcours de {{poste}} m'a interpellé 👀 WeFiiT : top 3 du Product en France, 100 % des équipes sur Claude, offres Data & IA en lancement. Pas pour toi si tu veux juste dérouler un backlog 😉 15 min pour en parler ?" }
 ];
 
-export const VARIABLES = ["prenom", "nom", "titre", "ville", "entreprise", "anciennete", "annee_process", "argument_metier", "accroche"];
+export const VARIABLES = ["prenom", "nom", "titre", "poste", "ville", "entreprise", "anciennete", "annee_process", "argument_metier", "accroche"];
+
+// Poste lisible : le titre Boond sans le code interne (« PO2 - Product Owner @Adone » → « Product Owner @Adone »).
+export function posteFromTitle(title: string): string {
+  return String(title || "").replace(/^\s*(?:PO|QA|PAD|TR)\s*\d*\+?\s*(?:[-–—:|]\s*)?/i, "").trim();
+}
 
 // Détection depuis le titre Boond. sure = false : rien de reconnu, valeur par défaut.
 // Bornes de mot faites à la main : \b ne reconnaît pas les lettres accentuées.
@@ -195,9 +200,9 @@ type CandidateLike = {
 // est à relancer, sinon le message de la campagne (ou le modèle de la banque s'il est vide).
 export function campaignMessage(campaign: CampaignLike, c: CandidateLike, blocks: Block[]) {
   const vars: Record<string, string> = {
-    prenom: c.firstName, nom: c.lastName, titre: c.title, ville: c.town,
-    // Entreprise ciblée par la campagne, seulement si elle figure dans le titre (poste actuel).
-    entreprise: c.companyInTitle && c.company ? c.company : "",
+    prenom: c.firstName, nom: c.lastName, titre: c.title, poste: posteFromTitle(c.title), ville: c.town,
+    // Entreprise repérée par une campagne « conseil » (titre ou expériences) : « ton expérience chez … ».
+    entreprise: c.company ?? "",
     argument_metier: blockBody(blocks, `ARG-${campaign.discipline}`)
   };
   if (c.category === "a_relancer") {
