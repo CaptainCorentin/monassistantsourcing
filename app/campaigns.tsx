@@ -41,7 +41,7 @@ const PRESET_INFO: Record<string, string> = {
   jamais: "Tes fiches « A traiter ! » sans aucun message dans Boond : les seules vraiment jamais contactées (un LN+ ou Vivier +++ a déjà échangé avec WeFiiT).",
   relance_campagne: "Ton dernier message date de plus de 6 mois, sans suite : nouvelle campagne, nouvelle accroche.",
   repris: "Contactés par un collègue il y a plus de 60 jours : tu reprends le fil.",
-  relances: "Tout le vivier WeFiiT : relance 1 ou 2 due sur tes messages, entre 7 et 30 jours après ton dernier message.",
+  relances: "Tout le vivier WeFiiT, contactables, dont TU as fait le dernier contact il y a 7 j à 6 mois : relance 1 après ton 1er contact, relance 2 après le 2e, relance 3 (la dernière) après le 3e.",
   pepites_wefiit: "Option : mêmes pépites (soft skills A) sur tout le vivier WeFiiT, y compris les fiches de tes collègues. À utiliser avec tact."
 };
 const QUICK_PREFIXES: Record<string, string[]> = { PO1: ["PO1"], PO2: ["PO2"], PO3: ["PO3"], QA: ["QA0", "QA1", "QA2"] };

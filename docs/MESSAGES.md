@@ -59,7 +59,7 @@ Titre ambigu : le bloc par défaut est appliqué et la fiche le signale. Entrepr
 
 ## Relances et note d'invitation
 
-R1 (action 15), R2 (action 16) et la note d'invitation (INV, 300 caractères max, compteur dans l'outil) : voir la banque dans la section trame Blendy ci-dessous.
+R1 (action 15), R2 (action 16), R3 (action 16, après le 3e contact, une seule fois) et la note d'invitation (INV, 300 caractères max, compteur dans l'outil) : voir la banque dans la section trame Blendy ci-dessous.
 
 ## Messages de campagne : trame Blendy (26/10)
 
@@ -110,7 +110,7 @@ Corentin
 #### R2
 
 ```
-{{prenom}}, dernier message promis (avant de passer en mode spam 😄)
+{{prenom}}, je tente encore ma chance (sans passer en mode spam, promis 😄)
 
 Toujours convaincu que ton profil de {{poste}} a sa place chez nous : top 3 du Product en France, plus de 120 WeFiiTers, 100 % sur Claude Entreprise, {{argument_metier}}, et une évolution vers Lead PM ou référent Data & IA.
 
@@ -118,6 +118,23 @@ Les équipes Data & IA se montent maintenant. Pour nous faire gagner du temps, u
 ✅ ok pour 15 min cette semaine ou la suivante
 ⏳ pas le bon timing
 ❌ pas un sujet pour moi
+
+Corentin
+```
+
+#### R3 (campagne « Mes relances », après mon 3e contact, tracée en 16, une seule fois)
+
+```
+{{prenom}}, je clos le dossier, c'est vraiment mon dernier message 🙂
+
+Pas de retour de ta part, et je le respecte : soit le timing n'est pas le bon, soit WeFiiT n'est pas un sujet pour toi.
+
+Si un jour tu veux emmener ton parcours de {{poste}} vers le Product à l'ère de l'IA (top 3 en France, plus de 120 WeFiiTers, offres Data & IA en lancement), ma porte reste ouverte.
+
+Un emoji pour que je sache où ranger ton profil :
+✅ on se cale 15 min cette semaine ou la suivante
+⏳ recontacte-moi dans 6 mois
+❌ pas pour moi
 
 Corentin
 ```

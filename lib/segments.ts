@@ -4,8 +4,9 @@
 export type SegmentCandidate = {
   category: string;
   reasons: string[];
-  lastContact: { date: string; byMe: boolean } | null;
+  lastContact: { date: string; byMe: boolean; typeOf?: number } | null;
   pastProcessDate?: string | null;
+  history?: { typeOf: number; byMe: boolean }[];
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -20,14 +21,33 @@ export const SEGMENT_LABELS: Record<string, string> = {
   contacte_par_autre_ancien: "Collègue > 60 j",
   relance_due: "Relance due",
   prise_actu: "Prise d'actu : collègue il y a 3 à 12 mois, process > 1 an",
-  sans_process_3_mois: "Jamais de process, contacté il y a > 3 mois"
+  sans_process_3_mois: "Jamais de process, contacté il y a > 3 mois",
+  mes_relances: "Mes relances : mon 1er, 2e ou 3e contact il y a 7 j à 6 mois"
 };
 export const SEGMENTS = Object.keys(SEGMENT_LABELS);
 
 // Ces segments lèvent, pour la campagne qui les utilise, la règle « vivier jusqu'à 6 mois après mon
 // dernier contact » : un candidat en vivier peut y entrer. Les blocages (process, fin de process,
 // pas intéressé, rappel, contact < 60 j d'un collègue, < 7 j de moi) restent appliqués par N8N.
-export const SEGMENTS_OPENING_VIVIER = ["sans_process_3_mois"];
+export const SEGMENTS_OPENING_VIVIER = ["sans_process_3_mois", "mes_relances"];
+
+// Relance suivante après MON dernier contact (131 → R1 tracée 15, 15 → R2 tracée 16, 16 → R3 tracée 16),
+// de 7 j à 6 mois après ce contact. Au-delà de 6 mois, c'est une nouvelle campagne (1er message).
+// Boond n'a pas de 4e contact : R3 est tracée en 16 et n'est proposée qu'une fois (un seul 16 de moi).
+export type RelanceStep = { kind: "R1" | "R2" | "R3"; typeOf: 15 | 16 };
+export function relanceStep(c: SegmentCandidate, now = Date.now()): RelanceStep | null {
+  const lc = c.lastContact;
+  if (!lc?.byMe || !["a_relancer", "vivier"].includes(c.category)) return null;
+  const age = ageDays(lc.date, now);
+  if (age === null || age < 7 || age > 180) return null;
+  if (lc.typeOf === 131) return { kind: "R1", typeOf: 15 };
+  if (lc.typeOf === 15) return { kind: "R2", typeOf: 16 };
+  if (lc.typeOf === 16) {
+    const mine = (c.history ?? []).filter(h => h.byMe && h.typeOf === 16).length;
+    return mine <= 1 ? { kind: "R3", typeOf: 16 } : null;
+  }
+  return null;
+}
 
 export function matchesSegment(c: SegmentCandidate, segment: string, now = Date.now()): boolean {
   if (!["a_contacter", "a_relancer", "vivier"].includes(c.category)) return false;
@@ -43,6 +63,8 @@ export function matchesSegment(c: SegmentCandidate, segment: string, now = Date.
       const contact = c.lastContact ? ageDays(c.lastContact.date, now) : null;
       return c.category !== "a_relancer" && !c.pastProcessDate && contact !== null && contact > 90;
     }
+    case "mes_relances":
+      return relanceStep(c, now) !== null;
     default:
       return c.category !== "vivier" && c.reasons[0] === segment;
   }

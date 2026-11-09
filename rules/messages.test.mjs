@@ -135,3 +135,15 @@ test("poste : titre Boond sans code interne", async () => {
   assert.equal(posteFromTitle("PO3 Adone"), "Adone");
   assert.equal(posteFromTitle("Head of Product"), "Head of Product");
 });
+
+test("campagne « Mes relances » : la relance imposée fixe le message et l'action Boond", () => {
+  const cand = { firstName: "Léa", lastName: "M", title: "PO2 - Product Owner", town: "Paris", state: 11, reasons: ["sequence_terminee"], category: "vivier", nextContactTypeOf: null };
+  const camp = { message: "", seniority: "PO2", discipline: "DIGITAL" };
+  const r3 = campaignMessage(camp, cand, DEFAULT_BLOCKS, { kind: "R3", typeOf: 16 });
+  assert.equal(r3.kind, "R3");
+  assert.equal(r3.typeOf, 16);
+  assert.match(r3.text, /^Léa, je clos le dossier/);
+  assert.match(r3.text, /Product Owner/);
+  assert.equal(campaignMessage(camp, { ...cand, category: "a_relancer", nextContactTypeOf: 15 }, DEFAULT_BLOCKS).typeOf, 15);
+  assert.equal(campaignMessage(camp, { ...cand, category: "a_contacter" }, DEFAULT_BLOCKS).typeOf, 131);
+});

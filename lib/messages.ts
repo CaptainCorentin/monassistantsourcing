@@ -13,7 +13,7 @@ export type Block = { code: string; kind: BlockKind; label: string; body: string
 export type Seniority = "PO1" | "PO2" | "PO3" | "QA";
 export type Discipline = "DIGITAL" | "DATA" | "IA" | "BUILD" | "QA";
 export type Hook = "A1" | "A2" | "A3" | "A4" | "A5";
-export type MessageKind = "premier" | "invitation" | "R1" | "R2";
+export type MessageKind = "premier" | "invitation" | "R1" | "R2" | "R3";
 
 export const SENIORITIES: { key: Seniority; label: string }[] = [
   { key: "PO1", label: "PO1 (junior)" },
@@ -39,7 +39,8 @@ export const MESSAGE_KINDS: { key: MessageKind; label: string }[] = [
   { key: "premier", label: "1er message" },
   { key: "invitation", label: "Note d'invitation" },
   { key: "R1", label: "Relance 1" },
-  { key: "R2", label: "Relance 2" }
+  { key: "R2", label: "Relance 2" },
+  { key: "R3", label: "Relance 3" }
 ];
 export const KIND_LABELS: Record<BlockKind, string> = {
   accroche: "Accroches (historique)",
@@ -80,7 +81,8 @@ export const DEFAULT_BLOCKS: Block[] = [
   { code: "DRV-QA", kind: "driver", label: "QA", body: "Tu pourras évoluer vers l'automatisation, la stratégie de test ou un rôle de PO, sur des missions 100 % QA et agiles." },
   { code: "CTA", kind: "cta", label: "Appel à l'action", body: "Si ça te parle, je serais ravi d'en échanger par téléphone : serais-tu disponible cette semaine ou la semaine prochaine ?\n\nPasse une excellente journée" },
   { code: "R1", kind: "relance", label: "Relance 1 (2e contact)", body: "{{prenom}}, le suspense est insoutenable 😄 As-tu vu passer mon message ?\n\nEn deux mots : un cabinet 100 % Product dans le top 3 en France, plus de 120 WeFiiTers, {{argument_metier}}, et de vraies perspectives (Lead PM, référent Data & IA).\n\nOn constitue en ce moment les équipes de nos offres Data & IA. Si ce n'est pas le bon moment, dis-le-moi simplement, je ne me vexe pas 😉\n\nSinon, 15 min de café virtuel cette semaine ou la suivante ?\n\nCorentin" },
-  { code: "R2", kind: "relance", label: "Relance 2 (3e contact)", body: "{{prenom}}, dernier message promis (avant de passer en mode spam 😄)\n\nToujours convaincu que ton profil de {{poste}} a sa place chez nous : top 3 du Product en France, plus de 120 WeFiiTers, 100 % sur Claude Entreprise, {{argument_metier}}, et une évolution vers Lead PM ou référent Data & IA.\n\nLes équipes Data & IA se montent maintenant. Pour nous faire gagner du temps, un emoji suffit :\n✅ ok pour 15 min cette semaine ou la suivante\n⏳ pas le bon timing\n❌ pas un sujet pour moi\n\nCorentin" },
+  { code: "R2", kind: "relance", label: "Relance 2 (3e contact)", body: "{{prenom}}, je tente encore ma chance (sans passer en mode spam, promis 😄)\n\nToujours convaincu que ton profil de {{poste}} a sa place chez nous : top 3 du Product en France, plus de 120 WeFiiTers, 100 % sur Claude Entreprise, {{argument_metier}}, et une évolution vers Lead PM ou référent Data & IA.\n\nLes équipes Data & IA se montent maintenant. Pour nous faire gagner du temps, un emoji suffit :\n✅ ok pour 15 min cette semaine ou la suivante\n⏳ pas le bon timing\n❌ pas un sujet pour moi\n\nCorentin" },
+  { code: "R3", kind: "relance", label: "Relance 3 (après le 3e contact, tracée en 3e contact)", body: "{{prenom}}, je clos le dossier, c'est vraiment mon dernier message 🙂\n\nPas de retour de ta part, et je le respecte : soit le timing n'est pas le bon, soit WeFiiT n'est pas un sujet pour toi.\n\nSi un jour tu veux emmener ton parcours de {{poste}} vers le Product à l'ère de l'IA (top 3 en France, plus de 120 WeFiiTers, offres Data & IA en lancement), ma porte reste ouverte.\n\nUn emoji pour que je sache où ranger ton profil :\n✅ on se cale 15 min cette semaine ou la suivante\n⏳ recontacte-moi dans 6 mois\n❌ pas pour moi\n\nCorentin" },
   { code: "INV", kind: "invitation", label: "Note d'invitation (300 caractères)", body: "{{prenom}}, ton parcours de {{poste}} m'a interpellé 👀 WeFiiT : top 3 du Product en France, 100 % des équipes sur Claude, offres Data & IA en lancement. Pas pour toi si tu veux juste dérouler un backlog 😉 15 min pour en parler ?" }
 ];
 
@@ -196,22 +198,25 @@ type CandidateLike = {
   company?: string | null; companyInTitle?: boolean;
 };
 
-// Message proposé pour un candidat dans une campagne : relance de la banque (R1 / R2) si le candidat
-// est à relancer, sinon le message de la campagne (ou le modèle de la banque s'il est vide).
-export function campaignMessage(campaign: CampaignLike, c: CandidateLike, blocks: Block[]) {
+// Message proposé pour un candidat dans une campagne, avec le type d'action Boond à tracer :
+// relance imposée par la campagne « Mes relances » (step), relance R1 / R2 si le candidat est à relancer,
+// sinon le message de la campagne (ou le modèle de la banque s'il est vide).
+export function campaignMessage(campaign: CampaignLike, c: CandidateLike, blocks: Block[],
+  step: { kind: "R1" | "R2" | "R3"; typeOf: 15 | 16 } | null = null) {
   const vars: Record<string, string> = {
     prenom: c.firstName, nom: c.lastName, titre: c.title, poste: posteFromTitle(c.title), ville: c.town,
     // Entreprise repérée par une campagne « conseil » (titre ou expériences) : « ton expérience chez … ».
     entreprise: c.company ?? "",
     argument_metier: blockBody(blocks, `ARG-${campaign.discipline}`)
   };
+  if (step) return { kind: step.kind, typeOf: step.typeOf, ...fillVariables(blockBody(blocks, step.kind), vars) };
   if (c.category === "a_relancer") {
     const kind = c.nextContactTypeOf === 16 ? "R2" : "R1";
-    return { kind, ...fillVariables(blockBody(blocks, kind), vars) };
+    return { kind, typeOf: c.nextContactTypeOf === 16 ? 16 : 15, ...fillVariables(blockBody(blocks, kind), vars) };
   }
   const hook = detectHook(c);
   // Entreprise et ancienneté ne sont pas dans Boond : A1 passe à son repli.
   vars.accroche = fillVariables(blockBody(blocks, hook === "A1" ? "A1-REPLI" : hook), vars).text;
   const template = campaign.message.trim() ? campaign.message : campaignTemplate(campaign.seniority, campaign.discipline, blocks);
-  return { kind: "premier", hook, ...fillVariables(template, vars) };
+  return { kind: "premier", typeOf: 131, hook, ...fillVariables(template, vars) };
 }

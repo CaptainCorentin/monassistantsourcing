@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Campaign } from "@/lib/campaigns";
 import type { Candidate, SearchResult } from "@/lib/types";
 import { campaignMessage, type Block } from "@/lib/messages";
-import { SEGMENTS_OPENING_VIVIER, inSegments } from "@/lib/segments";
+import { SEGMENTS_OPENING_VIVIER, inSegments, relanceStep } from "@/lib/segments";
 import { ACTION_LABELS, DAY, REASON_LABELS, STATES, api, boondUrl, formatDate, safeLinkedin, telHref } from "./shared";
 
 export type FlagKind = "masque" | "reporte";
@@ -168,7 +168,8 @@ function CandidateStep({ c, campaign, campaigns, blocks, recordFlag, advance, no
   notify: (msg: string) => void;
   onActionError: (msg: string) => void;
 }) {
-  const proposed = useMemo(() => campaignMessage(campaign, c, blocks), [campaign, c, blocks]);
+  const proposed = useMemo(() => campaignMessage(campaign, c, blocks,
+    campaign.filters.segments.includes("mes_relances") ? relanceStep(c) : null), [campaign, c, blocks]);
   const [text, setText] = useState(proposed.text);
   const [passOpen, setPassOpen] = useState(false);
   const [moveTo, setMoveTo] = useState("");
@@ -199,7 +200,7 @@ function CandidateStep({ c, campaign, campaigns, blocks, recordFlag, advance, no
   // l'extension crée l'action dans Boond.
   // L'action de contact est créée dans Boond en tâche de fond : pas besoin de l'extension.
   function logAction(message: string) {
-    const typeOf = c.nextContactTypeOf === 15 || c.nextContactTypeOf === 16 ? c.nextContactTypeOf : 131;
+    const typeOf = proposed.typeOf;
     api<{ created: boolean; duplicate: boolean }>("/api/actions", "POST", { candidateId: c.id, typeOf, text: message })
       .then(r => notify(r.duplicate
         ? `${name} : contact déjà tracé dans Boond aujourd'hui, rien ajouté`
@@ -305,7 +306,7 @@ function CandidateStep({ c, campaign, campaigns, blocks, recordFlag, advance, no
       <div className="step-message">
         <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
           <span className="label">
-            {phone ? "Pitch d'appel" : proposed.kind === "premier" ? "Message" : proposed.kind === "R2" ? "Relance 2" : "Relance 1"}
+            {phone ? "Pitch d'appel" : proposed.kind === "premier" ? "Message" : proposed.kind === "R3" ? "Relance 3" : proposed.kind === "R2" ? "Relance 2" : "Relance 1"}
           </span>
           <span className={`counter mono${len > INVITATION_LIMIT && !phone ? " soft" : ""}`}>{len} caractères</span>
         </div>
@@ -345,7 +346,7 @@ function CandidateStep({ c, campaign, campaigns, blocks, recordFlag, advance, no
         )}
         {phone && !tel && <p className="hint" style={{ margin: 0 }}>Pas de téléphone exploitable dans Boond : message LinkedIn à la place.</p>}
         <p className="hint" style={{ margin: 0 }}>
-          {phone && tel ? "« Appel passé » crée" : "L'envoi crée"} l&apos;action « {ACTION_LABELS[c.nextContactTypeOf === 15 || c.nextContactTypeOf === 16 ? c.nextContactTypeOf : 131]} » dans Boond
+          {phone && tel ? "« Appel passé » crée" : "L'envoi crée"} l&apos;action « {ACTION_LABELS[proposed.typeOf]} » dans Boond
           {phone && tel ? " avec le texte « Cold call »" : " avec ce message"} : pas besoin de l&apos;extension.
         </p>
         <p className="hint" style={{ margin: 0 }}>Ctrl + Entrée : {phone && tel ? "appel passé" : "envoyer"} · → : passer</p>

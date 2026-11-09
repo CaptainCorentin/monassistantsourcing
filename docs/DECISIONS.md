@@ -146,3 +146,10 @@ Base : mes fiches LN+ et Vivier +++ = 216. Tout le vivier WeFiiT LN+ et Vivier +
 | Outils, domaines | | quasi vides (≤ 15 fiches renseignées) | |
 
 Évaluations détaillées : chaque entretien porte 2 critères notés A à D et le recruteur (`evaluations[].notations`, `manager`). L'évaluation globale résume « critère 1 / critère 2 ».
+
+## Campagne « Mes relances » (09/11)
+
+Remplace la tuile « Relances en cours ». Cible : tout le vivier contactable (états 0, 5, 11, 13) dont **mon** contact est le dernier, il y a 7 jours à 6 mois. Après mon 1er contact → relance 1 (tracée 15), après le 2e → relance 2 (tracée 16), après le 3e → relance 3 (tracée 16, Boond n'a pas de 4e contact ; proposée une seule fois, tant que l'historique ne montre qu'un 16 de moi). Les blocages N8N restent appliqués (process, fin de process, pas intéressé, rappel, collègue < 60 j, moi < 7 j). La fenêtre de 30 j de l'extension ne s'applique plus ici, puisque la webapp trace elle-même l'action. Au-delà de 6 mois : nouvelle campagne (1er message). R2 ne dit plus « dernier message ».
+
+Limite : comme les autres tuiles, 300 fiches lues par lancement (les plus récemment mises à jour).
+
