@@ -165,3 +165,11 @@ Avant : les 300 fiches les plus récemment mises à jour, toujours les mêmes, y
 | Avant l'historique | Fiches masquées ou reportées dans la webapp, et (campagnes de 1er message) mes contacts de moins de 90 j : ils ne consomment plus de vérification. |
 | Vérification | 500 historiques au plus (300 avant). Le reste est annoncé (« N autres fiches correspondent ») : la campagne suivante les lit, puisque les fiches traitées sont écartées. |
 
+Vérifié en ligne le 09/11 (exécution 17367, tout le vivier, 500 vérifications) :
+
+| Campagne | Avant | Après |
+|---|---|---|
+| Mes relances | 24 relances (fenêtre 7 à 30 j, 300 fiches) | 143 fiches contactées par moi en 6 mois, toutes lues ; 90 relances dues (R1 88, R2 1, R3 1) ; 36 bloquées (collègue < 60 j 14, rappel 8, process 6, pas intéressé 5) |
+| Jamais de process | 300 fiches lues | 2 000 lues sur 9 731, 500 vérifiées, 1 437 en attente. 327 écartées car un collègue les a contactées il y a moins de 60 j : les fiches récemment mises à jour sont celles que l'équipe travaille |
+| Conseil généraliste | 300 fiches lues | 2 000 lues sur 2 396, 472 hors entreprise et 131 PAD / TR écartés sans appel, 500 vérifiées, 294 à contacter, 868 en attente |
+

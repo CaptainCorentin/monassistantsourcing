@@ -64,7 +64,7 @@ Mes fiches LN+ et Vivier +++ : 214 fiches Boond, 192 vérifiées, **136 contacta
 
 ## Idées
 
-- **Plafond de 300 fiches lues** : « Relances en cours » (696 fiches en états 0, 5, 11, 13) et « Pépites du vivier WeFiiT » (548) ne lisent que les 300 plus récemment mises à jour. Une relance sur une fiche ancienne peut manquer. Piste : une 2e recherche Boond sur les actions 131 / 15 récentes (filtre `/actions` par auteur, déjà testé) pour cibler directement les relances.
+- ~~**Plafond de 300 fiches lues**~~ (corrigé le 09/11, voir DECISIONS « Sélection des fiches ») : « Relances en cours » (696 fiches en états 0, 5, 11, 13) et « Pépites du vivier WeFiiT » (548) ne lisent que les 300 plus récemment mises à jour. Une relance sur une fiche ancienne peut manquer. Piste : une 2e recherche Boond sur les actions 131 / 15 récentes (filtre `/actions` par auteur, déjà testé) pour cibler directement les relances.
 
 - **Ciblage par préfixe hors de ton périmètre** : le préfixe du titre est filtré après la recherche Boond, sur les 300 premières fiches. Sur « Mes fiches » (216), tout est lu. Sur « Tout le vivier », ajouter le préfixe (ex. PO2) en mot-clé Boond pour que la recherche ramène directement les bonnes fiches.
 - **Suivi des campagnes** : compter, par campagne, les messages envoyés puis les réponses (action Boond suivante) pour comparer les messages, comme pour Hermine et Pablo.
@@ -79,3 +79,5 @@ Mes fiches LN+ et Vivier +++ : 214 fiches Boond, 192 vérifiées, **136 contacta
 - **Message adapté par Claude** au titre et à l'expérience du candidat, à partir du template choisi (appel serveur, jamais côté navigateur).
 - **Ordre « à contacter »** : sur 136, 54 sont des relances de campagne (ton dernier contact a plus de 6 mois) et 42 ont été contactés par un collègue il y a plus de 60 j. Un tri ou un filtre par motif aiderait à prioriser les 40 jamais contactés.
 - **Alerte de dérive des règles** : un test qui compare les constantes de `rules/contactability.js` à celles du workflow de l'extension, pour repérer un délai modifié d'un côté seulement.
+
+| 09/11 | Sonde et test de la nouvelle sélection | Exécutions 17360 (sonde `/actions`, une page de fiches brute) et 17367 (réponses brutes de la webapp, avec noms). | **À supprimer** dans N8N, Executions, par Corentin. |
