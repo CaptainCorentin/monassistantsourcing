@@ -34,7 +34,7 @@ export type SearchParams = {
   sort: "updateDate" | "creationDate";
   order: "asc" | "desc";
   scope: "mine" | "all";
-  maxChecks: 100 | 200 | 300;
+  maxChecks: 100 | 200 | 300 | 500;
   titlePrefixes: string[];
   requirePhone: boolean;
   // Évaluation globale Boond (« soft / hard »), filtrée par Boond.
@@ -49,6 +49,11 @@ export type SearchResult = {
   example: boolean;
   searchTotal: number;
   checked: number;
+  // Fiches lues dans Boond (avant les filtres), et fiches retenues mais non vérifiées (plafond atteint).
+  read?: number;
+  notChecked?: number;
+  // Plus de 1 000 contacts en 6 mois : les plus anciens ne sont pas lus.
+  actionsTruncated?: boolean;
   candidates: Candidate[];
   excluded: Record<string, number>;
   contactables?: number;

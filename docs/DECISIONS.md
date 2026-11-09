@@ -151,5 +151,17 @@ Base : mes fiches LN+ et Vivier +++ = 216. Tout le vivier WeFiiT LN+ et Vivier +
 
 Remplace la tuile « Relances en cours ». Cible : tout le vivier contactable (états 0, 5, 11, 13) dont **mon** contact est le dernier, il y a 7 jours à 6 mois. Après mon 1er contact → relance 1 (tracée 15), après le 2e → relance 2 (tracée 16), après le 3e → relance 3 (tracée 16, Boond n'a pas de 4e contact ; proposée une seule fois, tant que l'historique ne montre qu'un 16 de moi). Les blocages N8N restent appliqués (process, fin de process, pas intéressé, rappel, collègue < 60 j, moi < 7 j). La fenêtre de 30 j de l'extension ne s'applique plus ici, puisque la webapp trace elle-même l'action. Au-delà de 6 mois : nouvelle campagne (1er message). R2 ne dit plus « dernier message ».
 
-Limite : comme les autres tuiles, 300 fiches lues par lancement (les plus récemment mises à jour).
+Les fiches viennent de mes actions de contact (voir « Sélection des fiches »), plus de la date de mise à jour.
+
+## Sélection des fiches (09/11)
+
+Avant : les 300 fiches les plus récemment mises à jour, toujours les mêmes, y compris celles déjà traitées. Après :
+
+| Étape | Règle |
+|---|---|
+| Mes contacts | `/actions?perimeterManagers[]=15675&actionTypes[]=131,15,16` filtre bien sur l'auteur et le type (sonde du 09/11 : 1 187 actions, tri de la plus récente à la plus ancienne, pagination OK). 10 pages de 100 lues. |
+| « Mes relances » | Fiches = mes contacts des 6 derniers mois, lues par référence (CAND…), quels que soient leur date de mise à jour et leur responsable. Exhaustif jusqu'à 1 000 contacts en 6 mois (alerte au-delà). |
+| Autres campagnes | Recherche Boond paginée : 2 000 fiches lues (4 × 500) au lieu de 300, filtrées sur la fiche (PAD / TR, préfixe, entreprise, téléphone) sans appel supplémentaire. |
+| Avant l'historique | Fiches masquées ou reportées dans la webapp, et (campagnes de 1er message) mes contacts de moins de 90 j : ils ne consomment plus de vérification. |
+| Vérification | 500 historiques au plus (300 avant). Le reste est annoncé (« N autres fiches correspondent ») : la campagne suivante les lit, puisque les fiches traitées sont écartées. |
 

@@ -268,10 +268,11 @@ export default function CampaignsScreen({ campaigns, setCampaigns, blocks, onLau
               </div>
               <div className="field">
                 <label htmlFor="c-checks">Vérifier</label>
-                <select id="c-checks" value={f.maxChecks} onChange={e => setFilter("maxChecks", Number(e.target.value) as 100 | 200 | 300)}>
+                <select id="c-checks" value={f.maxChecks} onChange={e => setFilter("maxChecks", Number(e.target.value) as 100 | 200 | 300 | 500)}>
                   <option value={100}>100 fiches</option>
                   <option value={200}>200 fiches</option>
                   <option value={300}>300 fiches</option>
+                  <option value={500}>500 fiches</option>
                 </select>
               </div>
               <div className="field">

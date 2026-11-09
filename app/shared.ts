@@ -29,6 +29,7 @@ export const REASON_LABELS: Record<string, string> = {
   erreur_boond: "Historique illisible dans Boond",
   deja_traite: "Déjà traités, reportés ou sortis par toi",
   hors_segment: "Contactables, mais hors du segment de la campagne",
+  mon_contact_recent: "Contactés par toi il y a moins de 90 j (campagne « Mes relances »)",
   hors_entreprise: "Entreprise non retrouvée dans la fiche"
 };
 

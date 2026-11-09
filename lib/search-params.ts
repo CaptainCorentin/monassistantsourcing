@@ -2,7 +2,7 @@ import type { SearchParams } from "./types";
 import { SEGMENTS } from "./segments";
 
 const STATES = [0, 5, 11, 13];
-const CHECKS = [100, 200, 300] as const;
+const CHECKS = [100, 200, 300, 500] as const;
 export const TITLE_PREFIXES = ["PO1", "PO2", "PO3", "QA0", "QA1", "QA2", "NONE"];
 // Valeurs du dictionnaire Boond (setting.evaluation) : soft skills / hard skills Product.
 export const EVALUATIONS = ["A", "B", "C", "D", "A/A", "A/B", "A/C", "A/D", "B/A", "B/B", "B/C", "B/D", "C/A", "C/B", "C/C", "C/D"];

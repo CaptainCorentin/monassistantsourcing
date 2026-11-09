@@ -50,7 +50,7 @@ export default function Session({ campaign, campaigns, blocks, isFlagged, record
     setError("");
     setResult(null);
     try {
-      const data = await api<SearchResult>("/api/search", "POST", { ...campaign.filters, campaignId: campaign.id });
+      const data = await api<SearchResult>("/api/search", "POST", { ...campaign.filters, campaignId: campaign.id, target: campaign.target });
       setResult(data);
       setQueue(queueOf(data, campaign, isFlagged));
       setIdx(0);
@@ -94,7 +94,10 @@ export default function Session({ campaign, campaigns, blocks, isFlagged, record
 
   const excluded = Object.entries(result.excluded).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
   const flaggedCount = result.candidates.length - result.candidates.filter(c => !isFlagged(c.id)).length;
-  if (flaggedCount) excluded.push(["deja_traite", flaggedCount]);
+  if (flaggedCount) {
+    const prev = excluded.find(([k]) => k === "deja_traite");
+    if (prev) prev[1] += flaggedCount; else excluded.push(["deja_traite", flaggedCount]);
+  }
   const wanted = wantedCategories(campaign);
   const outOfSegment = result.candidates.filter(c => !isFlagged(c.id) && wanted.includes(c.category)).length - queue.length;
   const notCallable = campaign.channel === "phone"
@@ -122,10 +125,14 @@ export default function Session({ campaign, campaigns, blocks, isFlagged, record
       )}
       {excluded.length > 0 && (
         <details className="excluded">
-          <summary>{result.checked} fiches vérifiées, {excluded.reduce((a, [, n]) => a + n, 0)} écartées : voir pourquoi</summary>
+          <summary>{result.read ? `${result.read} fiches lues, ` : ""}{result.checked} vérifiées, {excluded.reduce((a, [, n]) => a + n, 0)} écartées : voir pourquoi</summary>
           <ul>{excluded.map(([k, n]) => <li key={k}><span className="mono">{n}</span> · {REASON_LABELS[k] || k}</li>)}</ul>
         </details>
       )}
+      {(result.notChecked ?? 0) > 0 && (
+        <p className="hint">{result.notChecked} autres fiches correspondent mais n&apos;ont pas été vérifiées : relance la campagne une fois celles-ci traitées.</p>
+      )}
+      {result.actionsTruncated && <p className="warn">Plus de 1 000 contacts en 6 mois : les plus anciens ne sont pas lus.</p>}
     </div>
   );
 

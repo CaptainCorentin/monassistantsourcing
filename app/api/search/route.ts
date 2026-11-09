@@ -8,7 +8,7 @@ import { isUuid } from "@/lib/campaigns";
 import type { Candidate, HistoryItem, SearchResult } from "@/lib/types";
 
 export const runtime = "nodejs";
-// Jusqu'à 300 historiques lus dans Boond : compter 30 à 60 secondes.
+// Jusqu'à 2 000 fiches lues et 500 historiques vérifiés dans Boond : compter 30 à 70 secondes.
 export const maxDuration = 120;
 
 const CATEGORIES = new Set(["a_contacter", "a_relancer", "vivier"]);
@@ -66,6 +66,9 @@ function sanitize(raw: unknown): SearchResult | null {
     searchTotal: typeof r.searchTotal === "number" ? r.searchTotal : 0,
     checked: typeof r.checked === "number" ? r.checked : 0,
     contactables: typeof r.contactables === "number" ? r.contactables : undefined,
+    read: typeof r.read === "number" ? r.read : undefined,
+    notChecked: typeof r.notChecked === "number" ? r.notChecked : undefined,
+    actionsTruncated: r.actionsTruncated === true,
     candidates,
     excluded
   };
@@ -89,6 +92,13 @@ export async function POST(req: Request) {
       .then(ids => ids.map(x => String(x && typeof x === "object" ? Object.values(x)[0] : x)).filter(id => /^\d{1,9}$/.test(id)))
       .catch(() => []);
   }
+  // Fiches masquées ou reportées : écartées par N8N avant la lecture de l'historique.
+  const excludeIds = await rpc<{ boond_id: number }[]>("app_list_flags", { p_token: token })
+    .then(rows => rows.map(r => String(r.boond_id)).filter(id => /^\d{1,9}$/.test(id)).slice(0, 3000))
+    .catch(() => [] as string[]);
+  // Cible de la campagne : une campagne de 1er message écarte mes contacts récents (ils relèvent des relances).
+  const rawTarget = (body as Record<string, unknown>).target;
+  const target = rawTarget === "a_contacter" || rawTarget === "a_relancer" ? rawTarget : "tous";
   const key = await webhookKey(token);
   if (!key) {
     return NextResponse.json({
@@ -101,7 +111,7 @@ export async function POST(req: Request) {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Vivier-Key": key },
-      body: JSON.stringify({ ...params, extraIds }),
+      body: JSON.stringify({ ...params, extraIds, excludeIds, target }),
       cache: "no-store",
       signal: AbortSignal.timeout(110_000)
     });

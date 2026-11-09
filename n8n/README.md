@@ -8,13 +8,13 @@ Backend de la webapp. Publié, webhook de production :
 | Étape | Nœuds | Rôle |
 |---|---|---|
 | 1. Entrée sécurisée | Webapp · Demande de recherche, Calculer l'empreinte de la clé, Clé valide ?, Refuser (401) | Compare le SHA-256 de l'en-tête `X-Vivier-Key` à l'empreinte stockée. Mauvaise clé : 401, aucun appel Boond. |
-| 2. Recherche Boond | Préparer la recherche, Boond · Rechercher les candidats, Lister les candidats à vérifier, Des candidats à vérifier ?, Répondre (aucun candidat) | 1 appel `/candidates` filtré (périmètre, `candidateStates[]`, mots-clés, tri), 300 fiches max. |
-| 3. Vérification et classement | Boond · Historique des actions, Classer selon les règles de contactabilité, Répondre à la webapp | 1 appel `/candidates/{id}/actions` par fiche (lots de 5), puis les règles de `rules/contactability.js`. |
+| 2. Lecture Boond | Préparer la recherche, Boond · Mes contacts récents, Préparer la lecture des fiches, Boond · Rechercher les candidats, Lister les candidats à vérifier, Des candidats à vérifier ?, Répondre (aucun candidat) | 10 appels `/actions` (mes 131 / 15 / 16, les 1 000 plus récentes). « Mes relances » : fiches de mes contacts des 6 derniers mois, lues par référence (100 par appel). Autres campagnes : `/candidates` filtré et paginé, 4 pages de 500 (2 000 fiches). Avant l'historique : PAD / TR, préfixe, entreprise, téléphone, fiches masquées ou reportées (`excludeIds`), et pour une campagne de 1er message (`target: a_contacter`) mes contacts de moins de 90 j. |
+| 3. Vérification et classement | Boond · Historique des actions, Classer selon les règles de contactabilité, Compléter la réponse, Répondre à la webapp | 1 appel `/candidates/{id}/actions` par fiche retenue (lots de 5, 500 au plus), puis les règles de `rules/contactability.js`. |
 
-Entrée (JSON) : `{ keywords, states: [11, 13], scope: "mine" | "all", sort, order, maxChecks: 100 | 200 | 300, titlePrefixes: ["PO2", "NONE"…], requirePhone, extraIds: ["12345"…] }`. `extraIds` = fiches déplacées vers la campagne : une 2e requête `keywords=CAND12345 CAND…`, sans filtre de ciblage.
-Sortie : `{ searchTotal, checked, contactables, byCategory, excluded, params, candidates[] }`, chaque candidat avec `phone`, `addedToCampaign` et `history` (6 dernières actions : type, date, auteur, texte nettoyé de 320 caractères).
+Entrée (JSON) : `{ keywords, states: [11, 13], scope: "mine" | "all", sort, order, maxChecks: 100 | 200 | 300 | 500, titlePrefixes: ["PO2", "NONE"…], requirePhone, segments, target, extraIds: ["12345"…], excludeIds: [...] }`. `extraIds` = fiches déplacées vers la campagne : une 2e requête `keywords=CAND12345 CAND…`, sans filtre de ciblage.
+Sortie : `{ searchTotal, read, checked, notChecked, actionsTruncated, contactables, byCategory, excluded, params, candidates[] }`, chaque candidat avec `phone`, `addedToCampaign` et `history` (6 dernières actions : type, date, auteur, texte nettoyé de 320 caractères).
 
-Le code des 3 nœuds Code est testé hors N8N par `rules/n8n.test.mjs`.
+Le code des nœuds Code (`prepare.js`, `fiches.js`, `list.js`, `classify_tail.js`, `respond.js`) est testé hors N8N par `rules/n8n.test.mjs`.
 
 Lecture seule : aucun nœud n'écrit dans Boond. Exécutions réussies non conservées (`saveDataSuccessExecution: none`), délai max 150 s.
 
